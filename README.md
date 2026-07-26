@@ -37,6 +37,8 @@ Tabs:
 - **Hidden** — unhide games
 
 ## Add Non-Steam Games
+**Preferred:** Use **Settings → Extra** to add or edit non-Steam games, then run **Scan for Games**. The manual steps below are a fallback if you prefer editing `NonSteamGames.inc` directly.
+
 This part of the process has to be done manually and will only take effect after using 'Scan for Games'
 
 1. Open the @Resrouces\NonSteamGames.inc
