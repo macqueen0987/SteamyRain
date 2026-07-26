@@ -17,6 +17,9 @@ class CaseSensitiveConfigParser(configparser.ConfigParser):
 
     def optionxform(self, optionstr: str) -> str:
         return optionstr
+
+
+extra_games_vars = {}
 #__________________________________________________________________________________________________________________________#
 #-------------------------------------------Function to update Update skin window------------------------------------------#
 
@@ -181,6 +184,22 @@ def get_image_for_game(image_path, id_key):
     return "header.jpg"
 
 #__________________________________________________________________________________________________________________________#
+#--------------------------------------Extra slots: skip empty names at scan time------------------------------------------#
+
+def iter_extra_game_indices(extra_vars: dict, extra_games_count: int):
+    """Yield 1..extra_games_count indices that have a non-empty EgameN name.
+
+    ExtraGamesCount remains the max used index (UI responsibility). Empty middle
+    slots are skipped when writing meters so gaps do not produce blank tiles.
+    """
+    for i in range(1, extra_games_count + 1):
+        name = extra_vars.get(f"Egame{i}", "")
+        if isinstance(name, str):
+            name = name.strip().strip('"')
+        if name:
+            yield i
+
+#__________________________________________________________________________________________________________________________#
 #------------------------------------------------Function to write meters--------------------------------------------------#
 
 def write_meters(output, image, image_path, search, hidden_games):
@@ -201,8 +220,8 @@ def write_meters(output, image, image_path, search, hidden_games):
             config_combined[f'Vis{i}'] = meter_data['String']
         config_combined[f'Gap{i}'] = meter_data['Gap']
 
-    # Loop through each extra game and create meters
-    for i in range(1, extra_games_count + 1):
+    # Extra: only non-empty EgameN names (empty middle slots skipped; index gaps OK)
+    for i in iter_extra_game_indices(extra_games_vars, extra_games_count):
         id_key = f'Egame{i}'
         is_hidden = hidden_games
         meter_data = create_meter(id_key, i, image, image_path, search, is_hidden, is_extra=True, extra_index=i)
@@ -262,7 +281,7 @@ def write_game_info(processed_ids, games_info):
 #----------------------------------------------------SCRIPT START HERE-----------------------------------------------------#
 
 def main():
-    global RainmeterPath, skinPath, locale, processed_ids, games_info, game_count, extra_games_count
+    global RainmeterPath, skinPath, locale, processed_ids, games_info, game_count, extra_games_count, extra_games_vars
 
     # 1: Set Variables
     variables = get_variables('SkinInfo.inc')
@@ -304,10 +323,12 @@ def main():
     write_game_info(processed_ids, games_info)
 
     # 4: Set variables for meters creation
+    # ExtraGamesCount = max used index (UI). Empty middle EgameN names skipped in write_meters.
     game_count = len(processed_ids)
     config_extra_games = CaseSensitiveConfigParser()
     config_extra_games.read(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'NonSteamGames.inc'), encoding='utf-8')
     extra_games_count = int(config_extra_games.get('Variables', 'ExtraGamesCount', fallback='0'))
+    extra_games_vars = dict(config_extra_games['Variables']) if 'Variables' in config_extra_games else {}
 
     # 5: Create meters dynamically
     status = "Creating Dynamic Meters Files..."

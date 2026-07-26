@@ -142,3 +142,12 @@ def test_case_sensitive_parser_keeps_key_case_and_hashes(ug, tmp_path: Path):
     assert parser.get("Variables", "Egame1Path") == '"C:\\Games\\App#1.exe"'
     assert parser.get("Variables", "Percent") == "100%"
     assert "egame1path" not in parser["Variables"]
+
+
+def test_iter_extra_game_indices_skips_empty_slots(ug):
+    vars_ = {
+        "Egame1": "EndField",
+        "Egame2": "",
+        "Egame3": "Nikke",
+    }
+    assert list(ug.iter_extra_game_indices(vars_, 3)) == [1, 3]
