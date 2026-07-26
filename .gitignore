@@ -4,6 +4,7 @@
 @Resources/NonSteamGames.inc
 @Resources/dynamicMeters/*
 docs/superpowers/
+.superpowers/
 __pycache__/
 *.pyc
 .pytest_cache/
