@@ -55,3 +55,13 @@ Extracted the Hidden games list into `@Resources/extraMeters/HiddenList.inc`, ma
 **HiddenCheck:** Only `[!Refresh "SteamyRain\Hidden" "Hidden.ini"]` when `#hiddenWindow#=1`; tab 4 already `[!DeactivateConfig]` Hidden, so no Settings conflict — no gate added.
 
 **Commit:** `fix(settings): clear HiddenListHidden on Hidden tab show`
+
+---
+
+## Follow-up: HiddenCheck resurrecting standalone Hidden on tab 4
+
+**Finding:** `[HiddenCheck]` still `[!Refresh "SteamyRain\Hidden"]` whenever `#hiddenWindow#=1`. Tab 4 deactivated Hidden but left `hiddenWindow=1` (NoGame flow), so Settings updates could resurrect a second list alongside tab 4.
+
+**Fix:** `TabSwitch` `IfTrueAction4` and QuickSettings Hidden Games now `[!WriteKeyValue Variables hiddenWindow "0" ...][!SetVariable hiddenWindow 0]` before `[!DeactivateConfig "SteamyRain\Hidden" "Hidden.ini"]`. `HiddenCheck` unchanged — no refresh once flag cleared.
+
+**Commit:** `fix(settings): clear hiddenWindow when opening Hidden tab`
