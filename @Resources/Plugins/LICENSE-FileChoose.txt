@@ -1,0 +1,17 @@
+FileChoose — third-party Rainmeter plugin (not Rainmeter core)
+
+Author: Setsukka
+Version: 1.2.0.1
+Forum thread: https://forum.rainmeter.net/viewtopic.php?f=128&t=33767
+
+This skin vendors FileChoose.dll under @Resources/Plugins for Settings
+Browse (ChooseFile / ChooseFolder / ChooseImage). FileChoose is a
+community plugin distributed via the Rainmeter Forums; it is not part
+of the official Rainmeter installation.
+
+The binary shipped here is the 64-bit build corresponding to Ver.1.2.0.1
+(sourced from the meters-on-demand/plugins community mirror of the
+forum release when direct forum download is Cloudflare-gated).
+
+Redistribution: follow the author’s terms as stated on the forum thread.
+SteamyRain does not claim ownership of FileChoose.

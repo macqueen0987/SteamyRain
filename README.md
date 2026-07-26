@@ -12,6 +12,12 @@ Thanks also to:
 You must have python installed!
 It is using a python script to fetch the required information and images from your steam folder and build meters dynamically.
 
+### FileChoose plugin
+Settings Paths/Extra Browse buttons use the bundled FileChoose plugin at
+`@Resources/Plugins/FileChoose.dll`. If Browse does nothing, confirm the DLL
+is present and set `HasFileChooseFlag=1` in Settings. Paths can always be
+typed via click-to-edit (InputText).
+
 ---
 
 ## Setup
