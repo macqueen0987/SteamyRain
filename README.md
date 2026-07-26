@@ -21,11 +21,20 @@ typed via click-to-edit (InputText).
 ---
 
 ## Setup
-1. Make sure that both paths inside @Resources\SkinInfo.inc are correct. You only need to modify this if your steam installation folder or your Rainmeter installation folder are not in their respective default location.
+1. Make sure paths are correct: open **Settings → Paths** (or edit `@Resources\SkinInfo.inc` by hand) if your Steam folder, library folders, or Rainmeter install are not in their default locations.
 2. **Optional** Add your non-Steam games. *see section below for more information*
 3. Open one of the SteamyRain.ini from the main folder and Click on 'Scan for Games'
 4. Wait till it's done and you're good to go.
 5. Adjust the settings to your liking.
+
+## Settings
+Open via QuickSettings → Settings, or middle-click the header icon.
+
+Tabs:
+- **Layout** — tile size, visibility toggles, colors
+- **Paths** — Steam / library folders / Rainmeter.exe / locale (Browse uses FileChoose)
+- **Extra** — non-Steam games (then run Scan for Games)
+- **Hidden** — unhide games
 
 ## Add Non-Steam Games
 This part of the process has to be done manually and will only take effect after using 'Scan for Games'
