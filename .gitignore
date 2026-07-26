@@ -3,3 +3,11 @@
 @Resources/GamesInfo.inc
 @Resources/NonSteamGames.inc
 @Resources/dynamicMeters/*
+docs/superpowers/
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+DEVNOTES.md
+docs/dev/

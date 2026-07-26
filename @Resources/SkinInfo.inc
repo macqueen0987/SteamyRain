@@ -2,27 +2,27 @@
 ;-------------------------------------------------PATHS
 SteamPath=C:\Program Files (x86)\Steam
 RainMeterEXE=C:\Program Files\Rainmeter\Rainmeter.exe
-GameDirs=C:\Program Files (x86)\Steam
-Locale = german
+GameDirs=E:\SteamLibrary
+Locale = koreana
 ;-----------------------------------------------GENERAL
-Mode=0
+Mode=1
 Mini=0
 Fade=0
 Offset=0
-Header=0
+Header=1
 Arrows=0
 Search=0
-HalfTiles=1
+HalfTiles=0
 Settings=0
 hiddenWindow=0
 FirstGame=-5
 SearchInput=Search by Name or ID
 ;------------------------------------------VISIBLETILES
 TilePixels=225
-Half=0
-VisibleTiles=5.5
-VisibleTilesL=7
-VisibleTilesS=5
+Half=5
+VisibleTiles=9.5
+VisibleTilesL=10.5
+VisibleTilesS=8
 GapBetweenTiles=10
 ;---------------------------------------------FADE&SIZE
 fadeMode=ON
@@ -34,8 +34,8 @@ DOWN=1
 START=0
 Container=1
 ;------------------------------------------SKINPOSITION
-SkinPosX=-1736
-SkinPosY=407
+SkinPosX=194
+SkinPosY=1260
 XPLUS=0
 ;----------------------------------------------LOGOSIZE
 LogoSize=16

@@ -1,0 +1,144 @@
+from __future__ import annotations
+
+import importlib.util
+import sys
+from pathlib import Path
+
+import pytest
+
+
+ROOT = Path(__file__).resolve().parents[1]
+UPDATE_GAMES_PATH = ROOT / "@Resources" / "UpdateGames.pyw"
+
+
+def load_update_games():
+    spec = importlib.util.spec_from_file_location("update_games", UPDATE_GAMES_PATH)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    sys.modules["update_games"] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+@pytest.fixture
+def ug():
+    return load_update_games()
+
+
+@pytest.fixture
+def steam_library(tmp_path: Path):
+    steamapps = tmp_path / "SteamLibrary" / "steamapps"
+    steamapps.mkdir(parents=True)
+
+    manifests = {
+        "appmanifest_111.acf": '"name"\t\t"Fixture Game"',
+        "appmanifest_222.acf": '"name"\t\t"Proton Experimental"',
+        "appmanifest_228980.acf": '"name"\t\t"Steamworks Common Redistributables"',
+        "appmanifest_333.acf": '"name"\t\t"Linux Runtime Soldier"',
+        "appmanifest_bad.acf": '"name"\t\t"Not Numeric"',
+    }
+    for name, name_line in manifests.items():
+        (steamapps / name).write_text(
+            f'"AppState"\n{{\n\t"appid"\t\t"{name[12:-4]}"\n\t{name_line}\n}}\n',
+            encoding="utf-8",
+        )
+    return steamapps
+
+
+def test_process_appmanifest_keeps_real_games_and_skips_runtime(ug, steam_library, monkeypatch):
+    monkeypatch.setattr(ug, "update_rainmeter_status", lambda msg: None)
+
+    files = sorted(p.name for p in steam_library.glob("appmanifest_*.acf"))
+    ids, info = ug.process_appmanifest_files(files, str(steam_library))
+
+    assert ids == ["111"]
+    assert info == [{"appid": "111", "name": "Fixture Game", "image": ""}]
+
+
+def test_get_image_for_game_prefers_png_header_candidates(ug, tmp_path: Path, monkeypatch):
+    monkeypatch.setattr(ug, "locale", "koreana", raising=False)
+    monkeypatch.setattr(ug, "processed_ids", ["111"], raising=False)
+
+    app_dir = tmp_path / "111"
+    app_dir.mkdir()
+    (app_dir / "library_header.png").write_bytes(b"fake-png")
+
+    assert ug.get_image_for_game(str(tmp_path), "ID1") == "library_header.png"
+
+
+def test_get_image_for_game_falls_back_to_any_image(ug, tmp_path: Path, monkeypatch):
+    monkeypatch.setattr(ug, "locale", "koreana", raising=False)
+    monkeypatch.setattr(ug, "processed_ids", ["111"], raising=False)
+
+    app_dir = tmp_path / "111"
+    nested = app_dir / "hashfolder"
+    nested.mkdir(parents=True)
+    (nested / "custom_art.jpg").write_bytes(b"fake-jpg")
+
+    assert ug.get_image_for_game(str(tmp_path), "ID1") == "hashfolder/custom_art.jpg"
+
+
+def test_write_game_info_preserves_hidden_by_appid(ug, tmp_path: Path, monkeypatch):
+    games_info = tmp_path / "GamesInfo.inc"
+    games_info.write_text(
+        "\n".join(
+            [
+                "[Variables]",
+                "GameCount=2",
+                "GameCountPLUS=1",
+                "ID1=111",
+                'ID1name="Old Name"',
+                "Vis1=0",
+                "ID2=999",
+                'ID2name="Hidden Game"',
+                "Vis2=1",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr(ug, "__file__", str(tmp_path / "UpdateGames.pyw"))
+
+    ug.write_game_info(
+        ["999", "111"],
+        [
+            {"appid": "999", "name": "Hidden Game"},
+            {"appid": "111", "name": "Fixture Game"},
+        ],
+    )
+
+    text = games_info.read_text(encoding="utf-8")
+    assert "ID1=999" in text
+    assert "Vis1=1" in text
+    assert "ID2=111" in text
+    assert "Vis2=0" in text
+    assert "GameCount=2" in text
+    assert "GameCountPLUS=1" in text
+
+
+def test_create_meter_includes_gap_and_steam_launch(ug, monkeypatch):
+    monkeypatch.setattr(ug, "processed_ids", ["111"], raising=False)
+    monkeypatch.setattr(ug, "locale", "koreana", raising=False)
+    monkeypatch.setattr(ug, "get_image_for_game", lambda image_path, id_key: "header.jpg")
+
+    meter = ug.create_meter("ID1", 1, "Logo", r"C:\Steam\appcache\librarycache", False, False)
+
+    assert meter["Gap"]["MeterStyle"] == "GapStyle"
+    assert meter["Image"]["LeftMouseUpAction"] == "[steam://rungameid/#ID1#]"
+    assert "header.jpg" in meter["Image"]["ImageName"]
+
+
+def test_case_sensitive_parser_keeps_key_case_and_hashes(ug, tmp_path: Path):
+    cfg_path = tmp_path / "sample.inc"
+    cfg_path.write_text(
+        "[Variables]\nEgame1Path=\"C:\\Games\\App#1.exe\"\nPercent=100%\n",
+        encoding="utf-8",
+    )
+
+    parser = ug.CaseSensitiveConfigParser()
+    parser.read(cfg_path, encoding="utf-8")
+
+    assert parser.get("Variables", "Egame1Path") == '"C:\\Games\\App#1.exe"'
+    assert parser.get("Variables", "Percent") == "100%"
+    assert "egame1path" not in parser["Variables"]

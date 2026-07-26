@@ -4,7 +4,18 @@ import subprocess
 import configparser
 
 class CaseSensitiveConfigParser(configparser.ConfigParser):
-    def optionxform(self, optionstr):
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            delimiters=('='),
+            comment_prefixes=(';'),
+            inline_comment_prefixes=(),
+            interpolation=None,
+            strict=False,
+            allow_no_value=True,
+            *args, **kwargs
+        )
+
+    def optionxform(self, optionstr: str) -> str:
         return optionstr
 #__________________________________________________________________________________________________________________________#
 #-------------------------------------------Function to update Update skin window------------------------------------------#
@@ -18,11 +29,12 @@ def update_rainmeter_status(status_message):
 def get_variables(config_file):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     config_path = os.path.join(script_dir, config_file)
-    config = configparser.ConfigParser()
-    config.read(config_path)
+    config = CaseSensitiveConfigParser()
+    config.read(config_path, encoding='utf-8')
     variables = {}
     if 'Variables' in config:
-        variables = dict(config['Variables'])
+        # Normalize keys to lowercase for stable lookups (SkinInfo keeps mixed case)
+        variables = {key.lower(): value for key, value in config['Variables'].items()}
     return variables
 
 #__________________________________________________________________________________________________________________________#
@@ -41,32 +53,34 @@ def process_appmanifest_files(appmanifest_files, gamedir_path):
             'Linux Runtime',
             'Proton'
         }
-        
+
         if not app_id.isdigit():
             continue
-            
-        if app_id not in app_ids_to_skip:
+
+        if app_id in app_ids_to_skip:
+            continue
+
+        # Read appmanifest file to get game information
+        appmanifest_path = os.path.join(gamedir_path, appmanifest_file)
+        with open(appmanifest_path, 'r', encoding='utf-8') as manifest_file:
+            manifest_data = manifest_file.read()
+
+            game_name = re.search(r'"name"\s*"(.*?)"', manifest_data)
+            if not game_name:
+                continue
+            game_name = game_name.group(1)
+            game_name = re.sub(r'[^a-zA-Z0-9\s]+', '', game_name)
+
+            skip_game = False
+            for game_to_skip in game_names_to_skip:
+                if game_name.find(game_to_skip) != -1:
+                    skip_game = True
+                    break
+            if skip_game:
+                continue
+
             processed_ids.append(app_id)
-
-            # Read appmanifest file to get game information
-            appmanifest_path = os.path.join(gamedir_path, appmanifest_file)
-            with open(appmanifest_path, 'r') as manifest_file:
-                manifest_data = manifest_file.read()
-
-                # Extract the appid and name from the appmanifest file
-                app_id = appmanifest_file[12:-4]  # Extract numerical part of the file name
-                game_name = re.search(r'"name"\s*"(.*?)"', manifest_data)
-                game_name = game_name.group(1)
-                game_name = re.sub(r'[^a-zA-Z0-9\s]+', '', game_name)
-                skip_game = False
-
-                for game_to_skip in game_names_to_skip:
-                    if game_name.find(game_to_skip) != -1:
-                        skip_game = True
-                if skip_game == True:
-                    continue
-                
-                games_info.append({'appid': app_id, 'name': game_name, 'image': ""})
+            games_info.append({'appid': app_id, 'name': game_name, 'image': ""})
 
     return processed_ids, games_info
 #__________________________________________________________________________________________________________________________#
@@ -126,8 +140,12 @@ def create_meter(id_key, index, image, image_path, search, is_hidden, is_extra=F
 def get_image_for_game(image_path, id_key):
     idx = int(id_key[2:])
     appid = processed_ids[idx - 1]
-    tail = ["header", 
-            "library_header", 
+    app_image_dir = f"{image_path}/{appid}"
+    if not os.path.isdir(app_image_dir):
+        return "header.jpg"
+
+    tail = ["header",
+            "library_header",
             f"library_header_{locale}",
             "library_header_blur",
             "library_hero",
@@ -135,30 +153,32 @@ def get_image_for_game(image_path, id_key):
             "logo",
             "library_600x900"
     ]
-    image_types = [
-        "jpg",
-        "png"
-    ]
-            
-    items = os.listdir(f"{image_path}/{appid}")
+    image_types = ("jpg", "png")
+
+    items = os.listdir(app_image_dir)
     # looking for tail + imagetype per folder
     for t in tail:
         for img_type in image_types:
             looking_for_file = f'{t}.{img_type}'
 
-            if os.path.exists(f'{image_path}/{appid}/{looking_for_file}'):
-                return f'{looking_for_file}'
+            if os.path.exists(f'{app_image_dir}/{looking_for_file}'):
+                return looking_for_file
 
             for item in items:
-                if os.path.isdir(f"{image_path}/{appid}/{item}"):
-                    if os.path.exists(f'{image_path}/{appid}/{item}/{looking_for_file}'):
+                if os.path.isdir(f"{app_image_dir}/{item}"):
+                    if os.path.exists(f'{app_image_dir}/{item}/{looking_for_file}'):
                         return f"{item}/{looking_for_file}"
-    
+
     # take any other image you can find
     for item in items:
-        for img_type in image_types:
-            if item.endswith(image_types):
-                return item
+        if item.lower().endswith(('.jpg', '.png')):
+            return item
+        if os.path.isdir(f"{app_image_dir}/{item}"):
+            for nested in os.listdir(f"{app_image_dir}/{item}"):
+                if nested.lower().endswith(('.jpg', '.png')):
+                    return f"{item}/{nested}"
+
+    return "header.jpg"
 
 #__________________________________________________________________________________________________________________________#
 #------------------------------------------------Function to write meters--------------------------------------------------#
@@ -196,7 +216,7 @@ def write_meters(output, image, image_path, search, hidden_games):
     # Write meters to a single file
     output_name = 'dynamicSearchMeters' if search else 'dynamicMeters' if output == 1 else ('dynamicListMeters' if output == 2 and not hidden_games else 'dynamicHiddenMeters')
     output_file = os.path.join(subfolder_path, f'{output_name}.inc')
-    with open(output_file, 'w') as configfile:
+    with open(output_file, 'w', encoding='utf-8') as configfile:
         for section in config_combined.sections():
             configfile.write(f'[{section}]\n')
             for option, value in config_combined.items(section):
@@ -206,21 +226,26 @@ def write_meters(output, image, image_path, search, hidden_games):
 #--------------------------------------------Function To update GamesInfo.inc----------------------------------------------#
 
 def write_game_info(processed_ids, games_info):
-    combined_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'GamesInfo.inc')
-    existing_hidden_values = {}
-    
-    if os.path.exists(combined_file_path):
-        with open(combined_file_path, 'r') as combined_file:
-            for line in combined_file:
-                parts = line.strip().split('=')
-                if len(parts) == 2:
-                    existing_hidden_values[parts[0]] = parts[1]
+    GamesInfoFile = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'GamesInfo.inc')
+    existing_hidden_appids = set()
 
-    with open(combined_file_path, 'w') as combined_file:
+    if os.path.exists(GamesInfoFile):
+        config_games_info = CaseSensitiveConfigParser()
+        config_games_info.read(GamesInfoFile, encoding='utf-8')
+        if 'Variables' in config_games_info:
+            vars_section = config_games_info['Variables']
+            for key, value in vars_section.items():
+                if key.startswith('Vis') and value == '1':
+                    index = key[3:]
+                    id_key = f'ID{index}'
+                    if id_key in vars_section:
+                        existing_hidden_appids.add(str(vars_section[id_key]))
+
+    with open(GamesInfoFile, 'w', encoding='utf-8') as combined_file:
         combined_file.write('[Variables]\n')
         game_count_value = len(processed_ids)
         combined_file.write(f'GameCount={game_count_value}\n')
-        hidden_variable_value = len(processed_ids) - sum(1 for app_id in set(processed_ids) if existing_hidden_values.get(app_id, '0') == '1')
+        hidden_variable_value = len(processed_ids) - sum(1 for app_id in processed_ids if app_id in existing_hidden_appids)
         combined_file.write(f'GameCountPLUS={hidden_variable_value}\n')
 
         for index, game_info in enumerate(games_info, start=1):
@@ -231,88 +256,95 @@ def write_game_info(processed_ids, games_info):
                 game_name = ''.join(e for e in game_name if e.isalnum() or e.isspace())
                 combined_file.write(f'ID{index}name="{game_name}"\n')
 
-                # Change the next line to add Vis#=0 or Vis#=1 based on the hidden status
-                hidden_value = existing_hidden_values.get(app_id, '0')
-                combined_file.write(f'Vis{index}={hidden_value}\n' if int(hidden_value) % 2 != 0 else f'Vis{index}=0\n')
+                hidden_value = 1 if app_id in existing_hidden_appids else 0
+                combined_file.write(f'Vis{index}={hidden_value}\n')
 #__________________________________________________________________________________________________________________________#
 #----------------------------------------------------SCRIPT START HERE-----------------------------------------------------#
 
-# 1: Set Variables
-variables = get_variables('SkinInfo.inc')
-steam_path = variables.get('steampath', '')
-image_path = steam_path + '/appcache/librarycache'
-game_dirs = variables.get('gamedirs', '')
-game_dirs = game_dirs.split(',')
-for i in range(len(game_dirs)):
-    game_dirs[i] = game_dirs[i].strip() + '\steamapps'
-locale = variables.get('locale', '').lower()
-RainmeterPath = variables.get('rainmeterexe', '')
-skinMode = variables.get('mode')
-skinPath = 'SteamyRain\\'
+def main():
+    global RainmeterPath, skinPath, locale, processed_ids, games_info, game_count, extra_games_count
 
-config_file = fr'SteamyRain.ini' if skinMode == '1' else fr'SteamyRainList.ini'
+    # 1: Set Variables
+    variables = get_variables('SkinInfo.inc')
+    steam_path = variables.get('steampath', '')
+    image_path = steam_path + '/appcache/librarycache'
+    game_dirs = variables.get('gamedirs', '')
+    game_dirs = game_dirs.split(',')
+    for i in range(len(game_dirs)):
+        game_dirs[i] = game_dirs[i].strip() + '\\steamapps'
+    locale = variables.get('locale', '').lower()
+    RainmeterPath = variables.get('rainmeterexe', '')
+    skinMode = variables.get('mode')
+    skinPath = 'SteamyRain\\'
 
-subprocess.call([RainmeterPath, '!ActivateConfig', fr'{skinPath}Update'])
-subprocess.call([RainmeterPath, '!DeactivateConfig', fr'{skinPath}', fr'{config_file}'])
+    config_file = fr'SteamyRain.ini' if skinMode == '1' else fr'SteamyRainList.ini'
 
-# 2: Find installed game IDs and Names from appmanifest files
-status = "Processing appmanifest files..."
-processed_ids = []
-games_info = []
-update_rainmeter_status(status)
-for game_dir in game_dirs:
-    status = f"Processing files of {game_dir}"
+    subprocess.call([RainmeterPath, '!ActivateConfig', fr'{skinPath}Update'])
+    subprocess.call([RainmeterPath, '!DeactivateConfig', fr'{skinPath}', fr'{config_file}'])
+
+    # 2: Find installed game IDs and Names from appmanifest files
+    status = "Processing appmanifest files..."
+    processed_ids = []
+    games_info = []
     update_rainmeter_status(status)
-    appmanifest_files = [f for f in os.listdir(os.path.join(game_dir)) if f.startswith('appmanifest_')]
-    processed_ids_gamedir, games_info_gamedir = process_appmanifest_files(appmanifest_files, game_dir)
-    processed_ids = processed_ids + processed_ids_gamedir 
-    games_info = games_info + games_info_gamedir
-#appmanifest_files = [f for f in os.listdir(os.path.join(manifest_path)) if f.startswith('appmanifest_')]
-#processed_ids, games_info = process_appmanifest_files(appmanifest_files, manifest_path)
+    for game_dir in game_dirs:
+        status = f"Processing files of {game_dir}"
+        update_rainmeter_status(status)
+        if not os.path.isdir(game_dir):
+            update_rainmeter_status(f"Missing library: {game_dir}")
+            continue
+        appmanifest_files = [f for f in os.listdir(game_dir) if f.startswith('appmanifest_')]
+        processed_ids_gamedir, games_info_gamedir = process_appmanifest_files(appmanifest_files, game_dir)
+        processed_ids = processed_ids + processed_ids_gamedir
+        games_info = games_info + games_info_gamedir
 
-# 3: Write new GamesInfo.inc
-status = "Writing new GamesInfo.inc..."
-update_rainmeter_status(status)
-write_game_info(processed_ids, games_info)
+    # 3: Write new GamesInfo.inc
+    status = "Writing new GamesInfo.inc..."
+    update_rainmeter_status(status)
+    write_game_info(processed_ids, games_info)
 
-# 4: Set variables for meters creation
-game_count = len(processed_ids)
-config_extra_games = CaseSensitiveConfigParser()
-config_extra_games.read('NonSteamGames.inc', encoding='utf-8')
-extra_games_count = int(config_extra_games.get('Variables', 'ExtraGamesCount', fallback='0'))
-#extra_games_count = int(config_extra_games['Variables']['ExtraGamesCount'])
+    # 4: Set variables for meters creation
+    game_count = len(processed_ids)
+    config_extra_games = CaseSensitiveConfigParser()
+    config_extra_games.read(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'NonSteamGames.inc'), encoding='utf-8')
+    extra_games_count = int(config_extra_games.get('Variables', 'ExtraGamesCount', fallback='0'))
 
-# 5: Create meters dynamically
-status = "Creating Dynamic Meters Files..."
-update_rainmeter_status(status)
+    # 5: Create meters dynamically
+    status = "Creating Dynamic Meters Files..."
+    update_rainmeter_status(status)
 
-if game_count > 0 or extra_games_count > 0:
-    output = 1
-    image = 'Logo'
-    hidden_games = False
-    search = False
-    write_meters(output, image, image_path, search, hidden_games)
+    if game_count > 0 or extra_games_count > 0:
+        output = 1
+        image = 'Logo'
+        hidden_games = False
+        search = False
+        write_meters(output, image, image_path, search, hidden_games)
 
-    output = 2
-    hidden_games = False
-    write_meters(output, image, image_path, search, hidden_games)
+        output = 2
+        hidden_games = False
+        write_meters(output, image, image_path, search, hidden_games)
 
-    image = 'Icon'
-    hidden_games = True
-    write_meters(output, image, image_path, search, hidden_games)
+        image = 'Icon'
+        hidden_games = True
+        write_meters(output, image, image_path, search, hidden_games)
 
-    search = True
-    write_meters(output, image, image_path, search, hidden_games)
-else:
-    # No games found, create empty output files
-    subfolder_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dynamicMeters')
-    output_file1 = os.path.join(subfolder_path, 'dynamicMeters.inc')
-    output_file2 = os.path.join(subfolder_path, 'dynamicListMeters.inc')
-    output_file3 = os.path.join(subfolder_path, 'dynamicHiddenMeters.inc')
-    output_file4 = os.path.join(subfolder_path, 'dynamicSearchMeters.inc')
-    open(output_file1, 'w').close()
-    open(output_file2, 'w').close()
-    open(output_file3, 'w').close()
-    open(output_file4, 'w').close()
+        search = True
+        write_meters(output, image, image_path, search, hidden_games)
+    else:
+        # No games found, create empty output files
+        subfolder_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dynamicMeters')
+        os.makedirs(subfolder_path, exist_ok=True)
+        output_file1 = os.path.join(subfolder_path, 'dynamicMeters.inc')
+        output_file2 = os.path.join(subfolder_path, 'dynamicListMeters.inc')
+        output_file3 = os.path.join(subfolder_path, 'dynamicHiddenMeters.inc')
+        output_file4 = os.path.join(subfolder_path, 'dynamicSearchMeters.inc')
+        open(output_file1, 'w', encoding='utf-8').close()
+        open(output_file2, 'w', encoding='utf-8').close()
+        open(output_file3, 'w', encoding='utf-8').close()
+        open(output_file4, 'w', encoding='utf-8').close()
 
-subprocess.call([RainmeterPath, '!SetVariable', 'Loop', '3', fr'{skinPath}Update'])
+    subprocess.call([RainmeterPath, '!SetVariable', 'Loop', '3', fr'{skinPath}Update'])
+
+
+if __name__ == '__main__':
+    main()
