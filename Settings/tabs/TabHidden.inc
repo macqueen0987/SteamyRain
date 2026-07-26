@@ -1,5 +1,5 @@
 ; Hidden tab — shared list UI (no second Close; Settings chrome owns window close).
-; HiddenList meters use Group TabHidden + #HiddenListHidden#; Container clips dynamic rows.
+; HiddenList meters use Group TabHidden + #HiddenListHidden# (TabSwitch sets 0 on tab 4, 1 off-tab); Container clips dynamic rows.
 
 @include30=#@#extraMeters\HiddenList.inc
 
