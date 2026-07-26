@@ -26,7 +26,7 @@ X=180
 FontColor=#TextColor#
 SolidColor=#Dark2#,1
 Padding=4,2,4,2
-LeftMouseUpAction=[!EnableMeasure FindEmptyExtraSlot][!CommandMeasure FindEmptyExtraSlot "Reset"][!UpdateMeasure FindEmptyExtraSlot]
+LeftMouseUpAction=[!UpdateMeasureGroup ExtraHas][!EnableMeasure FindEmptyExtraSlot][!CommandMeasure FindEmptyExtraSlot "Reset"][!UpdateMeasure FindEmptyExtraSlot]
 MouseOverAction=[!SetOption ExtraAddBtn FontColor "#SettingsHover#"][!UpdateMeter ExtraAddBtn][!Redraw]
 MouseLeaveAction=[!SetOption ExtraAddBtn FontColor "#TextColor#"][!UpdateMeter ExtraAddBtn][!Redraw]
 
