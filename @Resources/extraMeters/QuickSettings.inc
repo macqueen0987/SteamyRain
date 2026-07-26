@@ -69,7 +69,7 @@ Y=3r
 [HiddenoptionText]
 Meter=String
 Text="Hidden Games"
-LeftMouseUpAction=[!WriteKeyValue Variables SkinPosX "#CURRENTCONFIGX#" "#@#SkinInfo.inc"][!WriteKeyValue Variables SkinPosY "#CURRENTCONFIGY#" "#@#SkinInfo.inc"][!WriteKeyValue Variables hiddenWindow "(1-#hiddenWindow#)" "#@#SkinInfo.inc"][!SetVariable hiddenWindow "(1-#hiddenWindow#)" #CURRENTCONFIG#][!ToggleConfig "SteamyRain\Hidden" "Hidden.ini"][!HideMeterGroup QuickSettings]
+LeftMouseUpAction=[!WriteKeyValue Variables SkinPosX "#CURRENTCONFIGX#" "#@#SkinInfo.inc"][!WriteKeyValue Variables SkinPosY "#CURRENTCONFIGY#" "#@#SkinInfo.inc"][!WriteKeyValue Variables Settings "1" "#@#SkinInfo.inc"][!ActivateConfig "SteamyRain\Settings" "Settings.ini"][!SetVariable ActiveTab 4 "SteamyRain\Settings"][!UpdateMeasure TabSwitch "SteamyRain\Settings"][!DeactivateConfig "SteamyRain\Hidden" "Hidden.ini"][!HideMeterGroup QuickSettings]
 MouseOverAction=[!SetOption HiddenoptionText SolidColor #Dark1#][!UpdateMeter HiddenoptionText][!ReDraw]
 MouseLeaveAction=[!SetOption HiddenoptionText SolidColor #TextBG#][!UpdateMeter HiddenoptionText][!ReDraw]
 MeterStyle=TextStyle

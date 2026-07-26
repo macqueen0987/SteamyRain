@@ -102,7 +102,7 @@ def create_meter(id_key, index, image, image_path, search, is_hidden, is_extra=F
             'Meter': 'String',
             'Text': f'#{id_key}name#' if not is_extra else f'#{id_key}#',
             'LeftMouseUpAction': f'[steam://rungameid/#{id_key}#]' if not is_extra else f'[#{id_key}Path#]',
-            'MeterStyle': 'NameStyle',
+            'MeterStyle': 'HiddenNameStyle' if is_hidden else 'NameStyle',
             'Hidden': f'{HiddenValue}',
             'Group': f'Games | {section_prefix}G{index}',
         },
