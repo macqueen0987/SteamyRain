@@ -1,9 +1,8 @@
 ;_________________________________________________
-;______________LAYOUT TAB MEASURES________________
-; Grid: labels X=#Pad# W=#LabelW#; controls X=#ControlX#
-; Row Y = #ContentTop# + n*#RowH#
-;   0 Tile Size | 1 Visible | 2 Display title | 3-4 toggles | 5 Gap
-;   6 Colors title | 7..11 Color rows
+;______________LAYOUT TAB (SettingsForm grid)_____
+; Rows: Y=(#FormRowY0#+n*#FormRowH#)
+; 0 TileSize | 1 Visible | 2 Display section
+; 3-6 toggles | 7 Gap | 8 Colors section | 9-13 colors
 [TilePixelsY]
 Measure=Calc
 Formula=((#TilePixels#*46.74)/100)
@@ -28,8 +27,8 @@ DynamicVariables=1
 
 [TileSizeCheck]
 Measure=Calc
-; Fill width = #ControlW#
-Formula=(((#TilePixels#-170)*#ControlW#)/130)
+; Track is Dark1; fill grows with TilePixels (never full opaque white brick feel at mid values)
+Formula=(((#TilePixels#-170)*#FormControlW#)/130)
 OnUpdateAction=[!SetVariable TilePixels "#TilePixels#" "SteamyRain" "#ActiveConf#"][!UpdateMeasure TilePixelsY "SteamyRain" "#ActiveConf#"][!UpdateMeter TileSizeBar][!ReDraw]
 DynamicVariables=1
 
@@ -73,7 +72,7 @@ Formula=(Floor(#GapBetweenTiles#))
 OnUpdateAction=[!UpdateMeterGroup Vis][!WriteKeyValue Variables GapBetweenTiles #GapBetweenTiles# "#@#SkinInfo.inc"][!SetVariable GapBetweenTiles #GapBetweenTiles# "SteamyRain" "#ActiveConf#"][!UpdateMeasure Lenght "SteamyRain" "#ActiveConf#"][!ReDraw]
 DynamicVariables=1
 
-; InputText at control column; Y = ContentTop + n*RowH (+4 for vertical center in row)
+; InputText: FormControlX; Y = FormRowY0 + n*FormRowH + 6
 [InputColorMainBGMeasure]
 Measure=Plugin
 Plugin=InputText
@@ -81,8 +80,8 @@ SolidColor=#InputBG#
 FontColor=#TextColor#
 FontSize=10
 AntiAlias=1
-X=#ControlX#
-Y=(#ContentTop#+7*#RowH#+4)
+X=#FormControlX#
+Y=(#FormRowY0#+9*#FormRowH#+6)
 H=16
 W=120
 DefaultValue=#Dark1#
@@ -97,8 +96,8 @@ SolidColor=#InputBG#
 FontColor=#TextColor#
 FontSize=10
 AntiAlias=1
-X=#ControlX#
-Y=(#ContentTop#+8*#RowH#+4)
+X=#FormControlX#
+Y=(#FormRowY0#+10*#FormRowH#+6)
 H=16
 W=120
 DefaultValue=#InputBG#
@@ -113,8 +112,8 @@ SolidColor=#InputBG#
 FontColor=#TextColor#
 FontSize=10
 AntiAlias=1
-X=#ControlX#
-Y=(#ContentTop#+9*#RowH#+4)
+X=#FormControlX#
+Y=(#FormRowY0#+11*#FormRowH#+6)
 H=16
 W=120
 DefaultValue=#TextColor#
@@ -129,8 +128,8 @@ SolidColor=#InputBG#
 FontColor=#TextColor#
 FontSize=10
 AntiAlias=1
-X=#ControlX#
-Y=(#ContentTop#+10*#RowH#+4)
+X=#FormControlX#
+Y=(#FormRowY0#+12*#FormRowH#+6)
 H=16
 W=120
 DefaultValue=#TextBG#
@@ -145,8 +144,8 @@ SolidColor=#InputBG#
 FontColor=#TextColor#
 FontSize=10
 AntiAlias=1
-X=#ControlX#
-Y=(#ContentTop#+11*#RowH#+4)
+X=#FormControlX#
+Y=(#FormRowY0#+13*#FormRowH#+6)
 H=16
 W=120
 DefaultValue=#Opacity#
@@ -157,29 +156,20 @@ DynamicVariables=1
 
 ;_________________________________________________
 ;_______________LAYOUT TAB METERS_________________
-[LayoutAnchor]
-Meter=String
-SolidColor=0,0,0,1
-W=1
-H=1
-X=#Pad#
-Y=#ContentTop#
-Group=TabLayout
-DynamicVariables=1
-
 ; --- Row 0: Tile Size ---
 [TileSize]
 Meter=String
-MeterStyle=LayoutLabelStyle
+MeterStyle=FormLabel
 Text="Tile Size"
-Y=#ContentTop#
+Y=#FormRowY0#
+Group=TabLayout
 
 [TileSizeBar]
 Meter=Shape
-X=#ControlX#
-Y=(#ContentTop#+8)
-Shape=Rectangle 0,0,#ControlW#,10,2 | Fill Color #Dark1# | StrokeWidth 0
-Shape2=Rectangle 0,0,[TileSizeCheck],10,2 | Fill Color #TextColor# | StrokeWidth 0
+X=#FormControlX#
+Y=(#FormRowY0#+10)
+Shape=Rectangle 0,0,#FormControlW#,8,2 | Fill Color #Dark1# | StrokeWidth 0
+Shape2=Rectangle 0,0,[TileSizeCheck],8,2 | Fill Color #TextColor#,200 | StrokeWidth 0
 MiddleMouseUpAction=[!WriteKeyValue Variables TilePixels "225" "#@#SkinInfo.inc"][!SetVariable TilePixels "225"][!UpdateMeasure TileSizeCheck][!RefreshApp]
 MouseScrollDownAction=[!WriteKeyValue Variables TilePixels "(Clamp((#TilePixels#-5),170,300))" "#@#SkinInfo.inc"][!SetVariable TilePixels "(Clamp((#TilePixels#-5),170,300))"][!UpdateMeasure TileSizeCheck][!RefreshApp]
 MouseScrollUpAction=[!WriteKeyValue Variables TilePixels "(Clamp((#TilePixels#+5),170,300))" "#@#SkinInfo.inc"][!SetVariable TilePixels "(Clamp((#TilePixels#+5),170,300))"][!UpdateMeasure TileSizeCheck][!RefreshApp]
@@ -189,19 +179,19 @@ Group=TabLayout
 ; --- Row 1: Visible Games ---
 [VisibleTiles]
 Meter=String
-MeterStyle=LayoutLabelStyle
+MeterStyle=FormLabel
 Text="Visible Games"
-Y=(#ContentTop#+1*#RowH#)
+Y=(#FormRowY0#+1*#FormRowH#)
+Group=TabLayout
 
 [VisibleLess]
 Meter=String
-MeterStyle=LayoutValueStyle
+MeterStyle=FormValue
 Text="[\xe938]"
 FontFace=Segoe Fluent Icons
 FontSize=11
 SolidColor=#Dark2#,1
-X=#ControlX#
-Y=(#ContentTop#+1*#RowH#+4)
+Y=(#FormRowY0#+1*#FormRowH#+6)
 LeftMouseUpAction=[!Setvariable VisTile (Clamp((#VisTile#-1),1.#Half#,((#GameCountPLUS#+#ExtraGameCountPLUS#)-0.#Half#)))][!UpdateMeasure VisibleTilesCheck]
 MouseOverAction=[!SetOption VisibleLess FontColor "#SettingsHover#"][!UpdateMeter VisibleLess][!ReDraw]
 MouseLeaveAction=[!SetOption VisibleLess FontColor "#TextColor#,180"][!UpdateMeter VisibleLess][!ReDraw]
@@ -209,11 +199,11 @@ Group=TabLayout | Mode | Vis | HalfTile
 
 [VisibleText]
 Meter=String
-MeterStyle=LayoutValueStyle
+MeterStyle=FormValue
 Text="[VisibleTilesCheck]"
 StringAlign=Center
-X=(#ControlX#+36)
-Y=(#ContentTop#+1*#RowH#+4)
+X=(#FormControlX#+36)
+Y=(#FormRowY0#+1*#FormRowH#+6)
 W=28
 MiddleMouseUpAction=[!Setvariable VisTile "#DefaultVisTile#"][!UpdateMeasure VisibleTilesCheck]
 MouseScrollDownAction=[!Setvariable VisTile (Clamp((#VisTile#-1),1.#Half#,((#GameCountPLUS#+#ExtraGameCountPLUS#)-0.#Half#)))][!UpdateMeasure VisibleTilesCheck]
@@ -222,13 +212,13 @@ Group=TabLayout | Mode | Vis | HalfTile
 
 [VisibleMore]
 Meter=String
-MeterStyle=LayoutValueStyle
+MeterStyle=FormValue
 Text="[\xe937]"
 FontFace=Segoe Fluent Icons
 FontSize=11
 SolidColor=#Dark2#,1
-X=(#ControlX#+68)
-Y=(#ContentTop#+1*#RowH#+4)
+X=(#FormControlX#+68)
+Y=(#FormRowY0#+1*#FormRowH#+6)
 LeftMouseUpAction=[!Setvariable VisTile (Clamp((#VisTile#+1),1.#Half#,((#GameCountPLUS#+#ExtraGameCountPLUS#)-0.#Half#)))][!UpdateMeasure VisibleTilesCheck]
 MouseOverAction=[!SetOption VisibleMore FontColor "#SettingsHover#"][!UpdateMeter VisibleMore][!ReDraw]
 MouseLeaveAction=[!SetOption VisibleMore FontColor "#TextColor#,180"][!UpdateMeter VisibleMore][!ReDraw]
@@ -237,102 +227,96 @@ Group=TabLayout | Mode | Vis | HalfTile
 ; --- Row 2: Display section ---
 [DisplaySection]
 Meter=String
-MeterStyle=LayoutSectionStyle
+MeterStyle=FormSection
 Text="Display"
-Y=(#ContentTop#+2*#RowH#)
+Y=(#FormRowY0#+2*#FormRowH#)
+Group=TabLayout
 
-; --- Row 3: toggles top (two equal columns) ---
+; --- Rows 3-6: stacked toggles ---
 [NavArrows]
 Meter=String
-MeterStyle=LayoutLabelStyle
+MeterStyle=FormLabel
 Text="Nav Arrows"
-W=(#HalfW#-36)
-Y=(#ContentTop#+3*#RowH#)
+Y=(#FormRowY0#+3*#FormRowH#)
+Group=TabLayout
 
 [NavArrowsButton]
 Meter=Shape
-MeterStyle=ToggleStyle
-X=(#Pad#+#HalfW#-28)
-Y=(#ContentTop#+3*#RowH#+6)
+MeterStyle=FormToggle
+X=#FormControlX#
+Y=(#FormRowY0#+3*#FormRowH#+8)
 Shape=Rectangle 0,0,12,12 | Fill Color #OArrow# | Extend Button
 Button=StrokeWidth 2 | Stroke Color #Dark2#
 LeftMouseupAction=[!WriteKeyValue Variables Arrows (1-#Arrows#) "#@#SkinInfo.inc"][!SetVariable Arrows (1-#Arrows#) "SteamyRain" "#ActiveConf#"][!SetVariable Arrows (1-#Arrows#)][!EnableMeasure arrowCheck][!UpdateMeasure arrowCheck][!UpdateMeasure OptionsCheck]
-DynamicVariables=1
 Group=TabLayout
 
 [TileFade]
 Meter=String
-MeterStyle=LayoutLabelStyle
+MeterStyle=FormLabel
 Text="Fading Tiles"
-X=(#Pad#+#HalfW#)
-W=(#HalfW#-36)
-Y=(#ContentTop#+3*#RowH#)
+Y=(#FormRowY0#+4*#FormRowH#)
+Group=TabLayout
 
 [TileFadeButton]
 Meter=Shape
-MeterStyle=ToggleStyle
-X=(#Pad#+#ContentW#-28)
-Y=(#ContentTop#+3*#RowH#+6)
+MeterStyle=FormToggle
+X=#FormControlX#
+Y=(#FormRowY0#+4*#FormRowH#+8)
 Shape=Rectangle 0,0,12,12 | Fill Color #OFade# | Extend Button
 Button=StrokeWidth 2 | Stroke Color #Dark2#
 LeftMouseupAction=[!WriteKeyValue Variables Fade (1-#Fade#) "#@#SkinInfo.inc"][!SetVariable Fade (1-#Fade#)][!EnableMeasure fadeCheck][!UpdateMeasure fadeCheck][!UpdateMeasure OptionsCheck]
-DynamicVariables=1
 Group=TabLayout
 
-; --- Row 4: toggles bottom ---
 [HeaderVis]
 Meter=String
-MeterStyle=LayoutLabelStyle
+MeterStyle=FormLabel
 Text="Header"
-W=(#HalfW#-36)
-Y=(#ContentTop#+4*#RowH#)
+Y=(#FormRowY0#+5*#FormRowH#)
+Group=TabLayout
 
 [HeaderVisButton]
 Meter=Shape
-MeterStyle=ToggleStyle
-X=(#Pad#+#HalfW#-28)
-Y=(#ContentTop#+4*#RowH#+6)
+MeterStyle=FormToggle
+X=#FormControlX#
+Y=(#FormRowY0#+5*#FormRowH#+8)
 Shape=Rectangle 0,0,12,12 | Fill Color #OHead# | Extend Button
 Button=StrokeWidth 2 | Stroke Color #Dark2#
 LeftMouseupAction=[!WriteKeyValue Variables Header (1-#Header#) "#@#SkinInfo.inc"][!SetVariable Header (1-#Header#) "SteamyRain" "#ActiveConf#"][!SetVariable Header (1-#Header#)][!EnableMeasure headCheck][!UpdateMeasure headCheck][!UpdateMeasure OptionsCheck]
-DynamicVariables=1
 Group=TabLayout
 
 [HalfTiles]
 Meter=String
-MeterStyle=LayoutLabelStyle
+MeterStyle=FormLabel
 Text="Half Tiles"
-X=(#Pad#+#HalfW#)
-W=(#HalfW#-36)
-Y=(#ContentTop#+4*#RowH#)
+Y=(#FormRowY0#+6*#FormRowH#)
+Group=TabLayout
 
 [HalfTilesButton]
 Meter=Shape
-MeterStyle=ToggleStyle
-X=(#Pad#+#ContentW#-28)
-Y=(#ContentTop#+4*#RowH#+6)
+MeterStyle=FormToggle
+X=#FormControlX#
+Y=(#FormRowY0#+6*#FormRowH#+8)
 Shape=Rectangle 0,0,12,12 | Fill Color #OHalfTiles# | Extend Button
 Button=StrokeWidth 2 | Stroke Color #Dark2#
 LeftMouseupAction=[!SetVariable HalfTiles (1-#HalfTiles#)][!WriteKeyValue Variables HalfTiles (1-#HalfTiles#) "#@#SkinInfo.inc"][!EnableMeasure HalfTileCheck][!UpdateMeasure HalfTileCheck][!UpdateMeasure OptionsCheck]
-DynamicVariables=1
 Group=TabLayout | HalfTile
 
-; --- Row 5: Gap ---
+; --- Row 7: Gap ---
 [GapBetweenTiles]
 Meter=String
-MeterStyle=LayoutLabelStyle
+MeterStyle=FormLabel
 Text="Gap between tiles"
-Y=(#ContentTop#+5*#RowH#)
+Y=(#FormRowY0#+7*#FormRowH#)
+Group=TabLayout
 
 [GapBetweenTilesLess]
 Meter=String
-MeterStyle=LayoutValueStyle
+MeterStyle=FormValue
 Text="[\xe938]"
 FontFace=Segoe Fluent Icons
 FontSize=11
 SolidColor=#Dark2#,1
-X=#ControlX#
-Y=(#ContentTop#+5*#RowH#+4)
+Y=(#FormRowY0#+7*#FormRowH#+6)
 LeftMouseUpAction=[!Setvariable GapBetweenTiles (Clamp((#GapBetweenTiles#-1),0,#MaxGap#))][!UpdateMeasure GapBetweenTilesCheck]
 MouseOverAction=[!SetOption GapBetweenTilesLess FontColor "#SettingsHover#"][!UpdateMeter GapBetweenTilesLess][!ReDraw]
 MouseLeaveAction=[!SetOption GapBetweenTilesLess FontColor "#TextColor#,180"][!UpdateMeter GapBetweenTilesLess][!ReDraw]
@@ -340,11 +324,11 @@ Group=TabLayout | Mode | Vis | HalfTile
 
 [GapBetweenTilesText]
 Meter=String
-MeterStyle=LayoutValueStyle
+MeterStyle=FormValue
 Text="[GapBetweenTilesCheck]"
 StringAlign=Center
-X=(#ControlX#+36)
-Y=(#ContentTop#+5*#RowH#+4)
+X=(#FormControlX#+36)
+Y=(#FormRowY0#+7*#FormRowH#+6)
 W=28
 MiddleMouseUpAction=[!Setvariable GapBetweenTiles "#DefaultGap#"][!UpdateMeasure GapBetweenTilesCheck]
 MouseScrollDownAction=[!Setvariable GapBetweenTiles (Clamp((#GapBetweenTiles#-1),0,#MaxGap#))][!UpdateMeasure GapBetweenTilesCheck]
@@ -353,142 +337,153 @@ Group=TabLayout | Mode | Vis | HalfTile
 
 [GapBetweenTilesMore]
 Meter=String
-MeterStyle=LayoutValueStyle
+MeterStyle=FormValue
 Text="[\xe937]"
 FontFace=Segoe Fluent Icons
 FontSize=11
 SolidColor=#Dark2#,1
-X=(#ControlX#+68)
-Y=(#ContentTop#+5*#RowH#+4)
+X=(#FormControlX#+68)
+Y=(#FormRowY0#+7*#FormRowH#+6)
 LeftMouseUpAction=[!Setvariable GapBetweenTiles (Clamp((#GapBetweenTiles#+1),0,#MaxGap#))][!UpdateMeasure GapBetweenTilesCheck]
 MouseOverAction=[!SetOption GapBetweenTilesMore FontColor "#SettingsHover#"][!UpdateMeter GapBetweenTilesMore][!ReDraw]
 MouseLeaveAction=[!SetOption GapBetweenTilesMore FontColor "#TextColor#,180"][!UpdateMeter GapBetweenTilesMore][!ReDraw]
 Group=TabLayout | Mode | Vis | HalfTile
 
-; --- Row 6: Colors section ---
+; --- Row 8: Colors section ---
 [ColorsSection]
 Meter=String
-MeterStyle=LayoutSectionStyle
+MeterStyle=FormSection
 Text="Colors"
-Y=(#ContentTop#+6*#RowH#)
+Y=(#FormRowY0#+8*#FormRowH#)
+Group=TabLayout
 
-; --- Rows 7..11: label | reset | value (same ControlX column) ---
+; --- Rows 9-13: colors ---
 [TextColorMainBG]
 Meter=String
-MeterStyle=LayoutLabelStyle
+MeterStyle=FormLabel
 Text="Color Main BG"
-Y=(#ContentTop#+7*#RowH#)
+Y=(#FormRowY0#+9*#FormRowH#)
+Group=TabLayout
 
 [ResetColorMainBG]
 Meter=String
-MeterStyle=LayoutValueStyle
+MeterStyle=FormValue
 Text="[\xe72c]"
 FontFace=Segoe Fluent Icons
 FontSize=10
-X=#ControlX#
-Y=(#ContentTop#+7*#RowH#+4)
+Y=(#FormRowY0#+9*#FormRowH#+6)
 LeftMouseUpAction=[!WriteKeyValue Variables Dark1 #Dark1_DEFAULT# "#@#SkinInfo.inc"][!Setvariable Dark1 #Dark1_DEFAULT#][!RefreshApp]
+Group=TabLayout
 
 [InputColorMainBG]
 Meter=String
-MeterStyle=LayoutValueStyle
+MeterStyle=FormValue
 Text=#Dark1#
-X=(#ControlX#+28)
-Y=(#ContentTop#+7*#RowH#+4)
+X=(#FormControlX#+28)
+Y=(#FormRowY0#+9*#FormRowH#+6)
 LeftMouseUpAction=!CommandMeasure "InputColorMainBGMeasure" "ExecuteBatch 1-2"
+Group=TabLayout
 
 [TextColorInputBG]
 Meter=String
-MeterStyle=LayoutLabelStyle
+MeterStyle=FormLabel
 Text="Color Input BG"
-Y=(#ContentTop#+8*#RowH#)
+Y=(#FormRowY0#+10*#FormRowH#)
+Group=TabLayout
 
 [ResetColorInputBG]
 Meter=String
-MeterStyle=LayoutValueStyle
+MeterStyle=FormValue
 Text="[\xe72c]"
 FontFace=Segoe Fluent Icons
 FontSize=10
-X=#ControlX#
-Y=(#ContentTop#+8*#RowH#+4)
+Y=(#FormRowY0#+10*#FormRowH#+6)
 LeftMouseUpAction=[!WriteKeyValue Variables InputBG #InputBG_DEFAULT# "#@#SkinInfo.inc"][!Setvariable InputBG #InputBG_DEFAULT#][!RefreshApp]
+Group=TabLayout
 
 [InputColorInputBG]
 Meter=String
-MeterStyle=LayoutValueStyle
+MeterStyle=FormValue
 Text=#InputBG#
-X=(#ControlX#+28)
-Y=(#ContentTop#+8*#RowH#+4)
+X=(#FormControlX#+28)
+Y=(#FormRowY0#+10*#FormRowH#+6)
 LeftMouseUpAction=!CommandMeasure "InputColorInputBGMeasure" "ExecuteBatch 1-2"
+Group=TabLayout
 
 [TextColorTextColor]
 Meter=String
-MeterStyle=LayoutLabelStyle
+MeterStyle=FormLabel
 Text="Color Text"
-Y=(#ContentTop#+9*#RowH#)
+Y=(#FormRowY0#+11*#FormRowH#)
+Group=TabLayout
 
 [ResetColorTextColor]
 Meter=String
-MeterStyle=LayoutValueStyle
+MeterStyle=FormValue
 Text="[\xe72c]"
 FontFace=Segoe Fluent Icons
 FontSize=10
-X=#ControlX#
-Y=(#ContentTop#+9*#RowH#+4)
+Y=(#FormRowY0#+11*#FormRowH#+6)
 LeftMouseUpAction=[!WriteKeyValue Variables TextColor #TextColor_DEFAULT# "#@#SkinInfo.inc"][!Setvariable TextColor #TextColor_DEFAULT#][!RefreshApp]
+Group=TabLayout
 
 [InputColorTextColor]
 Meter=String
-MeterStyle=LayoutValueStyle
+MeterStyle=FormValue
 Text=#TextColor#
-X=(#ControlX#+28)
-Y=(#ContentTop#+9*#RowH#+4)
+X=(#FormControlX#+28)
+Y=(#FormRowY0#+11*#FormRowH#+6)
 LeftMouseUpAction=!CommandMeasure "InputColorTextColorMeasure" "ExecuteBatch 1-2"
+Group=TabLayout
 
 [TextColorTextBG]
 Meter=String
-MeterStyle=LayoutLabelStyle
+MeterStyle=FormLabel
 Text="Color Text BG"
-Y=(#ContentTop#+10*#RowH#)
+Y=(#FormRowY0#+12*#FormRowH#)
+Group=TabLayout
 
 [ResetColorTextBG]
 Meter=String
-MeterStyle=LayoutValueStyle
+MeterStyle=FormValue
 Text="[\xe72c]"
 FontFace=Segoe Fluent Icons
 FontSize=10
-X=#ControlX#
-Y=(#ContentTop#+10*#RowH#+4)
+Y=(#FormRowY0#+12*#FormRowH#+6)
 LeftMouseUpAction=[!WriteKeyValue Variables TextBG #TextBG_DEFAULT# "#@#SkinInfo.inc"][!Setvariable TextBG #TextBG_DEFAULT#][!RefreshApp]
+Group=TabLayout
 
 [InputColorTextBG]
 Meter=String
-MeterStyle=LayoutValueStyle
+MeterStyle=FormValue
 Text=#TextBG#
-X=(#ControlX#+28)
-Y=(#ContentTop#+10*#RowH#+4)
+X=(#FormControlX#+28)
+Y=(#FormRowY0#+12*#FormRowH#+6)
 LeftMouseUpAction=!CommandMeasure "InputColorTextBGMeasure" "ExecuteBatch 1-2"
+Group=TabLayout
 
 [TextColorOpacity]
 Meter=String
-MeterStyle=LayoutLabelStyle
+MeterStyle=FormLabel
 Text="Main BG Opacity"
-Y=(#ContentTop#+11*#RowH#)
+Y=(#FormRowY0#+13*#FormRowH#)
+Group=TabLayout
 
 [ResetColorOpacity]
 Meter=String
-MeterStyle=LayoutValueStyle
+MeterStyle=FormValue
 Text="[\xe72c]"
 FontFace=Segoe Fluent Icons
 FontSize=10
-X=#ControlX#
-Y=(#ContentTop#+11*#RowH#+4)
+Y=(#FormRowY0#+13*#FormRowH#+6)
 LeftMouseUpAction=[!WriteKeyValue Variables Opacity #Opacity_DEFAULT# "#@#SkinInfo.inc"][!Setvariable Opacity #Opacity_DEFAULT#][!RefreshApp]
+Group=TabLayout
 
 [InputColorOpacity]
 Meter=String
-MeterStyle=LayoutValueStyle
+MeterStyle=FormValue
 Text=#Opacity#
-X=(#ControlX#+28)
-Y=(#ContentTop#+11*#RowH#+4)
+X=(#FormControlX#+28)
+Y=(#FormRowY0#+13*#FormRowH#+6)
 LeftMouseUpAction=!CommandMeasure "InputColorOpacityMeasure" "ExecuteBatch 1-2"
+Group=TabLayout
