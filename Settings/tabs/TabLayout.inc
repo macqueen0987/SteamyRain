@@ -477,15 +477,3 @@ Y=214
 X=140
 LeftMouseUpAction=!CommandMeasure "InputColorOpacityMeasure" "ExecuteBatch 1-2"
 Group=TabLayout
-
-[DEBUG]
-Meter=String
-MeasureName=TileSizeCheck
-Text="[TileSizeCheck]"
-DynamicVariables=1
-FontColor=255,255,255
-SolidColor=0,0,0
-FontSize=18
-Hidden=1
-Group=TabLayout | HalfTile
-Y=150
