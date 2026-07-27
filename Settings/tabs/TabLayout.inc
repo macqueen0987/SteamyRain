@@ -14,14 +14,14 @@ IfCondition=#Arrows#=1
 IfCondition2=#Fade#=1
 IfCondition3=#Header#=1
 ifcondition4=#HalfTiles#=1
-IfTrueAction=[!SetVariable OArrow #Dark1#][!UpdateMeter NavArrowsButton][!ReDraw]
-IfTrueAction2=[!SetVariable OFade #Dark1#][!UpdateMeter TileFadeButton][!ReDraw]
-IfTrueAction3=[!SetVariable OHead #Dark1#][!UpdateMeter headerVisButton][!ReDraw]
-IfTrueAction4=[!SetVariable OHalfTiles #Dark1#][!UpdateMeter HalfTilesButton][!ReDraw]
-IfFalseAction=[!SetVariable OArrow #TextColor#][!UpdateMeter NavArrowsButton][!ReDraw]
-IfFalseAction2=[!SetVariable OFade #TextColor#][!UpdateMeter TileFadeButton][!ReDraw]
-IfFalseAction3=[!SetVariable OHead #TextColor#][!UpdateMeter headerVisButton][!ReDraw]
-IfFalseAction4=[!SetVariable OHalfTiles #TextColor#][!UpdateMeter HalfTilesButton][!ReDraw]
+IfTrueAction=[!SetVariable OArrow #TextColor#][!UpdateMeter NavArrowsButton][!ReDraw]
+IfTrueAction2=[!SetVariable OFade #TextColor#][!UpdateMeter TileFadeButton][!ReDraw]
+IfTrueAction3=[!SetVariable OHead #TextColor#][!UpdateMeter HeaderVisButton][!ReDraw]
+IfTrueAction4=[!SetVariable OHalfTiles #TextColor#][!UpdateMeter HalfTilesButton][!ReDraw]
+IfFalseAction=[!SetVariable OArrow #Dark1#][!UpdateMeter NavArrowsButton][!ReDraw]
+IfFalseAction2=[!SetVariable OFade #Dark1#][!UpdateMeter TileFadeButton][!ReDraw]
+IfFalseAction3=[!SetVariable OHead #Dark1#][!UpdateMeter HeaderVisButton][!ReDraw]
+IfFalseAction4=[!SetVariable OHalfTiles #Dark1#][!UpdateMeter HalfTilesButton][!ReDraw]
 IfConditionMode=1
 DynamicVariables=1
 
