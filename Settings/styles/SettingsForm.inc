@@ -13,8 +13,9 @@
 ; USAGE (row index n = 0,1,2,...):
 ;   Y=(#FormRowY0#+n*#FormRowH#)
 ;   Label:  MeterStyle=FormLabel   (full-width bar, X/W from style)
-;   Slider: X=#FormControlX#; W=#FormControlW#
 ;   Stepper: Less @ RowEnd-82, Text @ RowEnd-46 (W=28), More @ RowEnd-14
+;            (numeric values all use steppers - Rainmeter has no mouse-move
+;             event, so a drag-able slider is not implementable natively)
 ;   Color:   Reset @ RowEnd-122, Value @ RowEnd-100 (W=100)
 ;   Browse:  X=(RowEnd-24)
 ;   Toggle:  MeterStyle=FormToggle; X=(RowEnd-12); Y=(row)+8

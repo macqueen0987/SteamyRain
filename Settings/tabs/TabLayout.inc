@@ -25,11 +25,13 @@ IfFalseAction4=[!SetVariable OHalfTiles #Dark1#][!UpdateMeter HalfTilesButton][!
 IfConditionMode=1
 DynamicVariables=1
 
+; Holds the displayed tile size. Rainmeter has no mouse-move event, so a
+; drag-able slider is not achievable without segment hacks; Tile Size uses
+; the same stepper control as Visible Games and Gap between tiles.
 [TileSizeCheck]
 Measure=Calc
-; Track is Dark1; fill grows with TilePixels (never full opaque white brick feel at mid values)
-Formula=(((#TilePixels#-170)*#FormControlW#)/130)
-OnUpdateAction=[!SetVariable TilePixels "#TilePixels#" "SteamyRain" "#ActiveConf#"][!UpdateMeasure TilePixelsY "SteamyRain" "#ActiveConf#"][!UpdateMeter TileSizeBar][!ReDraw]
+Formula=(Floor(#TilePixels#))
+OnUpdateAction=[!SetVariable TilePixels "#TilePixels#" "SteamyRain" "#ActiveConf#"][!UpdateMeasure TilePixelsY "SteamyRain" "#ActiveConf#"][!UpdateMeter TileSizeText][!ReDraw]
 DynamicVariables=1
 
 [arrowCheck]
@@ -164,22 +166,45 @@ Text="Tile Size"
 Y=#FormRowY0#
 Group=TabLayout
 
-[TileSizeBar]
-Meter=Shape
-X=#FormControlX#
-Y=(#FormRowY0#+4)
-; Shape1 is a transparent 20px band so the thin track is easy to hit; the
-; track and fill are drawn 6px inside it, keeping their original visual Y.
-Shape=Rectangle 0,0,#FormControlW#,20 | Fill Color 0,0,0,1 | StrokeWidth 0
-Shape2=Rectangle 0,6,#FormControlW#,8,2 | Fill Color #Dark1# | StrokeWidth 0
-Shape3=Rectangle 0,6,[TileSizeCheck],8,2 | Fill Color #TextColor#,200 | StrokeWidth 0
-; Click anywhere on the track to jump to that value. $MouseX:%$ is 0-100
-; across this meter; TilePixels spans 170-300, so percent * 1.3 + 170.
-LeftMouseUpAction=[!WriteKeyValue Variables TilePixels "(Clamp((170+($MouseX:%$*1.3)),170,300))" "#@#SkinInfo.inc"][!SetVariable TilePixels "(Clamp((170+($MouseX:%$*1.3)),170,300))"][!UpdateMeasure TileSizeCheck][!Refresh "SteamyRain"]
+[TileSizeLess]
+Meter=String
+MeterStyle=FormValue
+Text="[\xe938]"
+FontFace=Segoe Fluent Icons
+FontSize=11
+SolidColor=#Dark2#,1
+X=(#FormControlX#+#FormControlW#-82)
+Y=(#FormRowY0#+6)
+LeftMouseUpAction=[!WriteKeyValue Variables TilePixels "(Clamp((#TilePixels#-5),170,300))" "#@#SkinInfo.inc"][!SetVariable TilePixels "(Clamp((#TilePixels#-5),170,300))"][!UpdateMeasure TileSizeCheck][!Refresh "SteamyRain"]
+MouseOverAction=[!SetOption TileSizeLess FontColor "#SettingsHover#"][!UpdateMeter TileSizeLess][!ReDraw]
+MouseLeaveAction=[!SetOption TileSizeLess FontColor "#TextColor#,180"][!UpdateMeter TileSizeLess][!ReDraw]
+Group=TabLayout
+
+[TileSizeText]
+Meter=String
+MeterStyle=FormValue
+Text="[TileSizeCheck]"
+StringAlign=Center
+X=(#FormControlX#+#FormControlW#-46)
+Y=(#FormRowY0#+6)
+W=28
 MiddleMouseUpAction=[!WriteKeyValue Variables TilePixels "225" "#@#SkinInfo.inc"][!SetVariable TilePixels "225"][!UpdateMeasure TileSizeCheck][!Refresh "SteamyRain"]
 MouseScrollDownAction=[!WriteKeyValue Variables TilePixels "(Clamp((#TilePixels#-5),170,300))" "#@#SkinInfo.inc"][!SetVariable TilePixels "(Clamp((#TilePixels#-5),170,300))"][!UpdateMeasure TileSizeCheck][!Refresh "SteamyRain"]
 MouseScrollUpAction=[!WriteKeyValue Variables TilePixels "(Clamp((#TilePixels#+5),170,300))" "#@#SkinInfo.inc"][!SetVariable TilePixels "(Clamp((#TilePixels#+5),170,300))"][!UpdateMeasure TileSizeCheck][!Refresh "SteamyRain"]
-DynamicVariables=1
+Group=TabLayout
+
+[TileSizeMore]
+Meter=String
+MeterStyle=FormValue
+Text="[\xe937]"
+FontFace=Segoe Fluent Icons
+FontSize=11
+SolidColor=#Dark2#,1
+X=(#FormControlX#+#FormControlW#-14)
+Y=(#FormRowY0#+6)
+LeftMouseUpAction=[!WriteKeyValue Variables TilePixels "(Clamp((#TilePixels#+5),170,300))" "#@#SkinInfo.inc"][!SetVariable TilePixels "(Clamp((#TilePixels#+5),170,300))"][!UpdateMeasure TileSizeCheck][!Refresh "SteamyRain"]
+MouseOverAction=[!SetOption TileSizeMore FontColor "#SettingsHover#"][!UpdateMeter TileSizeMore][!ReDraw]
+MouseLeaveAction=[!SetOption TileSizeMore FontColor "#TextColor#,180"][!UpdateMeter TileSizeMore][!ReDraw]
 Group=TabLayout
 
 ; --- Row 1: Visible Games ---
