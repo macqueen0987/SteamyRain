@@ -1,0 +1,12 @@
+---
+description: Always execute implementation plans with Subagent-Driven Development
+alwaysApply: true
+---
+
+# Implementation execution preference
+
+When an implementation plan is ready to execute (or the user says to implement a plan / "ㄱ" / "해줘"):
+
+- **Always use Subagent-Driven Development** (superpowers:subagent-driven-development): one fresh implementer subagent per task, task review after each, final whole-branch review at the end.
+- Do **not** ask whether to use Subagent-Driven vs Inline Execution — Subagent-Driven is the default.
+- Do **not** use executing-plans / inline batch execution unless the user explicitly overrides for that session.
