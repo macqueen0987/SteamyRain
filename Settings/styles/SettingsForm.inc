@@ -2,18 +2,22 @@
 ; SettingsForm.inc — Settings form grid system
 ;=================================================
 ; Rainmeter has no Flex/Grid. This file is the contract:
-;   label column | gutter | control column
+;   full-width row bar | label text left | control right-aligned
 ;
 ; Requires shell vars already set: Pad, ContentW, ContentTop
 ;
+; Let RowEnd = (#FormControlX#+#FormControlW#) — the row's right edge.
+; Narrow controls hang off RowEnd so they sit at the row's right side;
+; only wide controls (sliders) start at #FormControlX# and fill the column.
+;
 ; USAGE (row index n = 0,1,2,...):
 ;   Y=(#FormRowY0#+n*#FormRowH#)
-;   Label:  MeterStyle=FormLabel   (X/W from style)
-;   Control spine: X=#FormControlX#
-;   Stepper: Less @ FormControlX+0, Text @ +36, More @ +68
-;   Color:   Reset @ FormControlX, Value @ FormControlX+28
-;   Browse:  X=(#FormControlX#+#FormControlW#-24)
-;   Toggle:  MeterStyle=FormToggle; X=#FormControlX#; Y=(row)+8
+;   Label:  MeterStyle=FormLabel   (full-width bar, X/W from style)
+;   Slider: X=#FormControlX#; W=#FormControlW#
+;   Stepper: Less @ RowEnd-82, Text @ RowEnd-46 (W=28), More @ RowEnd-14
+;   Color:   Reset @ RowEnd-122, Value @ RowEnd-100 (W=100)
+;   Browse:  X=(RowEnd-24)
+;   Toggle:  MeterStyle=FormToggle; X=(RowEnd-12); Y=(row)+8
 ;   Field:   MeterStyle=FormField (click-to-edit value box)
 ;   IconBtn: MeterStyle=FormIconBtn (glyph button, hover built-in)
 ;   Pill:    MeterStyle=FormPill (preset chip; pair with a String-measure
@@ -31,14 +35,17 @@ FormRowY0=#ContentTop#
 
 ;_________________________________________________
 ;_________________FORM STYLES_____________________
+; Row bar spans the full content width so the label (left) and its control
+; (right-aligned at FormControlX+FormControlW) read as one row, not as a
+; chip and a floating widget separated by dead space.
 [FormLabel]
 DynamicVariables=1
 AntiAlias=1
 FontSize=10
 FontColor=#TextColor#
-SolidColor=#TextBG#
+SolidColor=#InputBG#
 Padding=8,6,8,6
-W=#FormLabelW#
+W=#ContentW#
 X=#Pad#
 
 [FormSection]
