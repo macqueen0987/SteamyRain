@@ -60,9 +60,26 @@ Y=(#FormRowY0#+4*#FormRowH#+6)
 H=16
 W=#FormControlW#
 DefaultValue=#Locale#
-Command1=[!WriteKeyValue Variables Locale "$UserInput$" "#@#SkinInfo.inc"][!SetVariable Locale "$UserInput$"][!UpdateMeterGroup TabPaths][!Redraw]
+Command1=[!WriteKeyValue Variables Locale "$UserInput$" "#@#SkinInfo.inc"][!SetVariable Locale "$UserInput$"][!UpdateMeterGroup TabPaths][!UpdateMeasure LocaleCheckEnglish][!UpdateMeasure LocaleCheckKoreana][!Redraw]
 DynamicVariables=1
 
+; Keeps the Locale pills' highlight in sync with #Locale#. Any bang that
+; changes Locale must also !UpdateMeasure both of these.
+[LocaleCheckEnglish]
+Measure=String
+String=#Locale#
+DynamicVariables=1
+IfMatch=^english$
+IfMatchAction=[!SetOption LocalePresetEnglish SolidColor "#SettingsHover#"][!SetOption LocalePresetEnglish FontColor "#Dark1#"][!UpdateMeter LocalePresetEnglish][!Redraw]
+IfNotMatchAction=[!SetOption LocalePresetEnglish SolidColor "#TextBG#"][!SetOption LocalePresetEnglish FontColor "#TextColor#"][!UpdateMeter LocalePresetEnglish][!Redraw]
+
+[LocaleCheckKoreana]
+Measure=String
+String=#Locale#
+DynamicVariables=1
+IfMatch=^koreana$
+IfMatchAction=[!SetOption LocalePresetKoreana SolidColor "#SettingsHover#"][!SetOption LocalePresetKoreana FontColor "#Dark1#"][!UpdateMeter LocalePresetKoreana][!Redraw]
+IfNotMatchAction=[!SetOption LocalePresetKoreana SolidColor "#TextBG#"][!SetOption LocalePresetKoreana FontColor "#TextColor#"][!UpdateMeter LocalePresetKoreana][!Redraw]
 
 ;_________________________________________________
 ;_________________PATHS TAB METERS________________
@@ -191,34 +208,22 @@ Hidden=1
 
 [LocalePresetEnglish]
 Meter=String
-MeterStyle=FormValue
+MeterStyle=FormPill
 Text="english"
-FontSize=9
-FontColor=#TextColor#
-SolidColor=#TextBG#
-Padding=4,2,4,2
 Group=TabPaths
 Hidden=1
 Y=(#FormRowY0#+3*#FormRowH#+4)
-LeftMouseUpAction=[!WriteKeyValue Variables Locale "english" "#@#SkinInfo.inc"][!SetVariable Locale "english"][!UpdateMeterGroup TabPaths][!Redraw]
-MouseOverAction=[!SetOption LocalePresetEnglish FontColor "#SettingsHover#"][!UpdateMeter LocalePresetEnglish][!Redraw]
-MouseLeaveAction=[!SetOption LocalePresetEnglish FontColor "#TextColor#"][!UpdateMeter LocalePresetEnglish][!Redraw]
+LeftMouseUpAction=[!WriteKeyValue Variables Locale "english" "#@#SkinInfo.inc"][!SetVariable Locale "english"][!UpdateMeterGroup TabPaths][!UpdateMeasure LocaleCheckEnglish][!UpdateMeasure LocaleCheckKoreana][!Redraw]
 
 [LocalePresetKoreana]
 Meter=String
-MeterStyle=FormValue
+MeterStyle=FormPill
 Text="koreana"
-FontSize=9
-FontColor=#TextColor#
-SolidColor=#TextBG#
-Padding=4,2,4,2
 Group=TabPaths
 Hidden=1
 X=(#FormControlX#+64)
 Y=(#FormRowY0#+3*#FormRowH#+4)
-LeftMouseUpAction=[!WriteKeyValue Variables Locale "koreana" "#@#SkinInfo.inc"][!SetVariable Locale "koreana"][!UpdateMeterGroup TabPaths][!Redraw]
-MouseOverAction=[!SetOption LocalePresetKoreana FontColor "#SettingsHover#"][!UpdateMeter LocalePresetKoreana][!Redraw]
-MouseLeaveAction=[!SetOption LocalePresetKoreana FontColor "#TextColor#"][!UpdateMeter LocalePresetKoreana][!Redraw]
+LeftMouseUpAction=[!WriteKeyValue Variables Locale "koreana" "#@#SkinInfo.inc"][!SetVariable Locale "koreana"][!UpdateMeterGroup TabPaths][!UpdateMeasure LocaleCheckEnglish][!UpdateMeasure LocaleCheckKoreana][!Redraw]
 
 ; --- Row 4: Locale value ---
 [LocaleValue]
