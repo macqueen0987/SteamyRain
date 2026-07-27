@@ -38,6 +38,8 @@ Tabs:
 - **Extra** — non-Steam games (then run Scan for Games)
 - **Hidden** — unhide games
 
+Settings tabs (Layout/Paths/Extra/Hidden) share one component system defined in `Settings/styles/SettingsForm.inc` (`FormLabel`/`FormSection`/`FormField`/`FormIconBtn`/`FormPill`/`FormToggle`) — new controls should reuse these styles rather than hand-rolling new ones.
+
 ## Add Non-Steam Games
 **Preferred:** Use **Settings → Extra** to add or edit non-Steam games, then run **Scan for Games**. The manual steps below are a fallback if you prefer editing `NonSteamGames.inc` directly.
 
