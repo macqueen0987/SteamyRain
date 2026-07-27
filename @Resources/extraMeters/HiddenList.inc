@@ -192,7 +192,13 @@ MouseActionCursor=0
 DynamicVariables=1
 FontSize=12
 AntiAlias=1
-Y=-#EntrySize#R
+; Vis is the last meter of a row, so this offset sets the row pitch:
+; next row's Name is [MoveNames:H]+2 = 20px below it, and Game sits 1px
+; above Name, so Vis at Game.Y+(EntrySize-19) makes the pitch exactly
+; EntrySize - which is what Lenght/VisibleTilesS/scroll steps assume.
+; (The old -EntrySize R gave a pitch of 37-EntrySize, so raising
+; EntrySize tightened rows instead of loosening them.)
+Y=(#EntrySize#-19)r
 X=(#HiddenListW#-5)
 
 [HiddenButtonStyle]

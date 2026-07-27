@@ -86,7 +86,7 @@ H=16
 W=120
 DefaultValue=#Dark1#
 Command1=[!WriteKeyValue Variables Dark1 "$UserInput$" "#@#SkinInfo.inc"][!SetVariable Dark1 "$UserInput$"]
-Command2=[!RefreshApp]
+Command2=[!Refresh "SteamyRain"]
 DynamicVariables=1
 
 [InputColorInputBGMeasure]
@@ -102,7 +102,7 @@ H=16
 W=120
 DefaultValue=#InputBG#
 Command1=[!WriteKeyValue Variables InputBG "$UserInput$" "#@#SkinInfo.inc"][!SetVariable InputBG "$UserInput$"]
-Command2=[!RefreshApp]
+Command2=[!Refresh "SteamyRain"]
 DynamicVariables=1
 
 [InputColorTextColorMeasure]
@@ -118,7 +118,7 @@ H=16
 W=120
 DefaultValue=#TextColor#
 Command1=[!WriteKeyValue Variables TextColor "$UserInput$" "#@#SkinInfo.inc"][!SetVariable TextColor "$UserInput$"]
-Command2=[!RefreshApp]
+Command2=[!Refresh "SteamyRain"]
 DynamicVariables=1
 
 [InputColorTextBGMeasure]
@@ -134,7 +134,7 @@ H=16
 W=120
 DefaultValue=#TextBG#
 Command1=[!WriteKeyValue Variables TextBG "$UserInput$" "#@#SkinInfo.inc"][!SetVariable TextBG "$UserInput$"]
-Command2=[!RefreshApp]
+Command2=[!Refresh "SteamyRain"]
 DynamicVariables=1
 
 [InputColorOpacityMeasure]
@@ -150,7 +150,7 @@ H=16
 W=120
 DefaultValue=#Opacity#
 Command1=[!WriteKeyValue Variables Opacity "$UserInput$" "#@#SkinInfo.inc"][!SetVariable Opacity "$UserInput$"]
-Command2=[!RefreshApp]
+Command2=[!Refresh "SteamyRain"]
 DynamicVariables=1
 
 
@@ -175,10 +175,10 @@ Shape2=Rectangle 0,6,#FormControlW#,8,2 | Fill Color #Dark1# | StrokeWidth 0
 Shape3=Rectangle 0,6,[TileSizeCheck],8,2 | Fill Color #TextColor#,200 | StrokeWidth 0
 ; Click anywhere on the track to jump to that value. $MouseX:%$ is 0-100
 ; across this meter; TilePixels spans 170-300, so percent * 1.3 + 170.
-LeftMouseUpAction=[!WriteKeyValue Variables TilePixels "(Clamp((170+($MouseX:%$*1.3)),170,300))" "#@#SkinInfo.inc"][!SetVariable TilePixels "(Clamp((170+($MouseX:%$*1.3)),170,300))"][!UpdateMeasure TileSizeCheck][!RefreshApp]
-MiddleMouseUpAction=[!WriteKeyValue Variables TilePixels "225" "#@#SkinInfo.inc"][!SetVariable TilePixels "225"][!UpdateMeasure TileSizeCheck][!RefreshApp]
-MouseScrollDownAction=[!WriteKeyValue Variables TilePixels "(Clamp((#TilePixels#-5),170,300))" "#@#SkinInfo.inc"][!SetVariable TilePixels "(Clamp((#TilePixels#-5),170,300))"][!UpdateMeasure TileSizeCheck][!RefreshApp]
-MouseScrollUpAction=[!WriteKeyValue Variables TilePixels "(Clamp((#TilePixels#+5),170,300))" "#@#SkinInfo.inc"][!SetVariable TilePixels "(Clamp((#TilePixels#+5),170,300))"][!UpdateMeasure TileSizeCheck][!RefreshApp]
+LeftMouseUpAction=[!WriteKeyValue Variables TilePixels "(Clamp((170+($MouseX:%$*1.3)),170,300))" "#@#SkinInfo.inc"][!SetVariable TilePixels "(Clamp((170+($MouseX:%$*1.3)),170,300))"][!UpdateMeasure TileSizeCheck][!Refresh "SteamyRain"]
+MiddleMouseUpAction=[!WriteKeyValue Variables TilePixels "225" "#@#SkinInfo.inc"][!SetVariable TilePixels "225"][!UpdateMeasure TileSizeCheck][!Refresh "SteamyRain"]
+MouseScrollDownAction=[!WriteKeyValue Variables TilePixels "(Clamp((#TilePixels#-5),170,300))" "#@#SkinInfo.inc"][!SetVariable TilePixels "(Clamp((#TilePixels#-5),170,300))"][!UpdateMeasure TileSizeCheck][!Refresh "SteamyRain"]
+MouseScrollUpAction=[!WriteKeyValue Variables TilePixels "(Clamp((#TilePixels#+5),170,300))" "#@#SkinInfo.inc"][!SetVariable TilePixels "(Clamp((#TilePixels#+5),170,300))"][!UpdateMeasure TileSizeCheck][!Refresh "SteamyRain"]
 DynamicVariables=1
 Group=TabLayout
 
@@ -379,7 +379,7 @@ MeterStyle=FormIconBtn
 Text="[\xe72c]"
 X=(#FormControlX#+#FormControlW#-122)
 Y=(#FormRowY0#+9*#FormRowH#+6)
-LeftMouseUpAction=[!WriteKeyValue Variables Dark1 #Dark1_DEFAULT# "#@#SkinInfo.inc"][!Setvariable Dark1 #Dark1_DEFAULT#][!RefreshApp]
+LeftMouseUpAction=[!WriteKeyValue Variables Dark1 #Dark1_DEFAULT# "#@#SkinInfo.inc"][!Setvariable Dark1 #Dark1_DEFAULT#][!Refresh "SteamyRain"]
 Group=TabLayout
 
 [InputColorMainBG]
@@ -405,7 +405,7 @@ MeterStyle=FormIconBtn
 Text="[\xe72c]"
 X=(#FormControlX#+#FormControlW#-122)
 Y=(#FormRowY0#+10*#FormRowH#+6)
-LeftMouseUpAction=[!WriteKeyValue Variables InputBG #InputBG_DEFAULT# "#@#SkinInfo.inc"][!Setvariable InputBG #InputBG_DEFAULT#][!RefreshApp]
+LeftMouseUpAction=[!WriteKeyValue Variables InputBG #InputBG_DEFAULT# "#@#SkinInfo.inc"][!Setvariable InputBG #InputBG_DEFAULT#][!Refresh "SteamyRain"]
 Group=TabLayout
 
 [InputColorInputBG]
@@ -431,7 +431,7 @@ MeterStyle=FormIconBtn
 Text="[\xe72c]"
 X=(#FormControlX#+#FormControlW#-122)
 Y=(#FormRowY0#+11*#FormRowH#+6)
-LeftMouseUpAction=[!WriteKeyValue Variables TextColor #TextColor_DEFAULT# "#@#SkinInfo.inc"][!Setvariable TextColor #TextColor_DEFAULT#][!RefreshApp]
+LeftMouseUpAction=[!WriteKeyValue Variables TextColor #TextColor_DEFAULT# "#@#SkinInfo.inc"][!Setvariable TextColor #TextColor_DEFAULT#][!Refresh "SteamyRain"]
 Group=TabLayout
 
 [InputColorTextColor]
@@ -457,7 +457,7 @@ MeterStyle=FormIconBtn
 Text="[\xe72c]"
 X=(#FormControlX#+#FormControlW#-122)
 Y=(#FormRowY0#+12*#FormRowH#+6)
-LeftMouseUpAction=[!WriteKeyValue Variables TextBG #TextBG_DEFAULT# "#@#SkinInfo.inc"][!Setvariable TextBG #TextBG_DEFAULT#][!RefreshApp]
+LeftMouseUpAction=[!WriteKeyValue Variables TextBG #TextBG_DEFAULT# "#@#SkinInfo.inc"][!Setvariable TextBG #TextBG_DEFAULT#][!Refresh "SteamyRain"]
 Group=TabLayout
 
 [InputColorTextBG]
@@ -483,7 +483,7 @@ MeterStyle=FormIconBtn
 Text="[\xe72c]"
 X=(#FormControlX#+#FormControlW#-122)
 Y=(#FormRowY0#+13*#FormRowH#+6)
-LeftMouseUpAction=[!WriteKeyValue Variables Opacity #Opacity_DEFAULT# "#@#SkinInfo.inc"][!Setvariable Opacity #Opacity_DEFAULT#][!RefreshApp]
+LeftMouseUpAction=[!WriteKeyValue Variables Opacity #Opacity_DEFAULT# "#@#SkinInfo.inc"][!Setvariable Opacity #Opacity_DEFAULT#][!Refresh "SteamyRain"]
 Group=TabLayout
 
 [InputColorOpacity]
