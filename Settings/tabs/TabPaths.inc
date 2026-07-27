@@ -71,7 +71,7 @@ String=#Locale#
 DynamicVariables=1
 IfMatch=^english$
 IfMatchAction=[!SetOption LocalePresetEnglish SolidColor "#SettingsHover#"][!SetOption LocalePresetEnglish FontColor "#Dark1#"][!UpdateMeter LocalePresetEnglish][!Redraw]
-IfNotMatchAction=[!SetOption LocalePresetEnglish SolidColor "#TextBG#"][!SetOption LocalePresetEnglish FontColor "#TextColor#"][!UpdateMeter LocalePresetEnglish][!Redraw]
+IfNotMatchAction=[!SetOption LocalePresetEnglish SolidColor "#TextBG#"][!SetOption LocalePresetEnglish FontColor "#TextColor#,180"][!UpdateMeter LocalePresetEnglish][!Redraw]
 
 [LocaleCheckKoreana]
 Measure=String
@@ -79,7 +79,7 @@ String=#Locale#
 DynamicVariables=1
 IfMatch=^koreana$
 IfMatchAction=[!SetOption LocalePresetKoreana SolidColor "#SettingsHover#"][!SetOption LocalePresetKoreana FontColor "#Dark1#"][!UpdateMeter LocalePresetKoreana][!Redraw]
-IfNotMatchAction=[!SetOption LocalePresetKoreana SolidColor "#TextBG#"][!SetOption LocalePresetKoreana FontColor "#TextColor#"][!UpdateMeter LocalePresetKoreana][!Redraw]
+IfNotMatchAction=[!SetOption LocalePresetKoreana SolidColor "#TextBG#"][!SetOption LocalePresetKoreana FontColor "#TextColor#,180"][!UpdateMeter LocalePresetKoreana][!Redraw]
 
 ;_________________________________________________
 ;_________________PATHS TAB METERS________________
@@ -214,6 +214,8 @@ Group=TabPaths
 Hidden=1
 Y=(#FormRowY0#+3*#FormRowH#+4)
 LeftMouseUpAction=[!WriteKeyValue Variables Locale "english" "#@#SkinInfo.inc"][!SetVariable Locale "english"][!UpdateMeterGroup TabPaths][!UpdateMeasure LocaleCheckEnglish][!UpdateMeasure LocaleCheckKoreana][!Redraw]
+MouseOverAction=[!SetOption LocalePresetEnglish SolidColor "#SettingsHover#"][!SetOption LocalePresetEnglish FontColor "#Dark1#"][!UpdateMeter LocalePresetEnglish][!Redraw]
+MouseLeaveAction=[!UpdateMeasure LocaleCheckEnglish]
 
 [LocalePresetKoreana]
 Meter=String
@@ -224,6 +226,8 @@ Hidden=1
 X=(#FormControlX#+64)
 Y=(#FormRowY0#+3*#FormRowH#+4)
 LeftMouseUpAction=[!WriteKeyValue Variables Locale "koreana" "#@#SkinInfo.inc"][!SetVariable Locale "koreana"][!UpdateMeterGroup TabPaths][!UpdateMeasure LocaleCheckEnglish][!UpdateMeasure LocaleCheckKoreana][!Redraw]
+MouseOverAction=[!SetOption LocalePresetKoreana SolidColor "#SettingsHover#"][!SetOption LocalePresetKoreana FontColor "#Dark1#"][!UpdateMeter LocalePresetKoreana][!Redraw]
+MouseLeaveAction=[!UpdateMeasure LocaleCheckKoreana]
 
 ; --- Row 4: Locale value ---
 [LocaleValue]

@@ -27,7 +27,6 @@ FormLabelW=168
 FormControlX=(#Pad#+#FormLabelW#+#FormGutter#)
 FormControlW=(#ContentW#-#FormLabelW#-#FormGutter#)
 FormRowH=32
-FormSectionGap=8
 FormRowY0=#ContentTop#
 
 ;_________________________________________________
@@ -49,7 +48,7 @@ FontSize=10
 FontWeight=600
 FontColor=#TextColor#,200
 SolidColor=#TextBG#
-Padding=8,(6+#FormSectionGap#),8,6
+Padding=8,6,8,6
 W=#ContentW#
 X=#Pad#
 
@@ -74,6 +73,7 @@ SolidColor=#TextBG#
 Padding=4,1,4,1
 H=14
 ClipString=1
+X=#FormControlX#
 
 [FormIconBtn]
 DynamicVariables=1
@@ -85,6 +85,7 @@ SolidColor=#Dark2#,1
 MouseActionCursor=0
 MouseOverAction=[!SetOption #CURRENTSECTION# FontColor "#SettingsHover#"][!UpdateMeter #CURRENTSECTION#][!Redraw]
 MouseLeaveAction=[!SetOption #CURRENTSECTION# FontColor "#TextColor#"][!UpdateMeter #CURRENTSECTION#][!Redraw]
+X=#FormControlX#
 
 [FormPill]
 DynamicVariables=1
@@ -93,3 +94,4 @@ FontSize=9
 FontColor=#TextColor#
 SolidColor=#TextBG#
 Padding=4,2,4,2
+X=#FormControlX#
