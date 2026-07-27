@@ -367,20 +367,19 @@ Group=TabLayout
 
 [ResetColorMainBG]
 Meter=String
-MeterStyle=FormValue
+MeterStyle=FormIconBtn
 Text="[\xe72c]"
-FontFace=Segoe Fluent Icons
-FontSize=10
 Y=(#FormRowY0#+9*#FormRowH#+6)
 LeftMouseUpAction=[!WriteKeyValue Variables Dark1 #Dark1_DEFAULT# "#@#SkinInfo.inc"][!Setvariable Dark1 #Dark1_DEFAULT#][!RefreshApp]
 Group=TabLayout
 
 [InputColorMainBG]
 Meter=String
-MeterStyle=FormValue
+MeterStyle=FormField
 Text=#Dark1#
 X=(#FormControlX#+28)
 Y=(#FormRowY0#+9*#FormRowH#+6)
+W=100
 LeftMouseUpAction=!CommandMeasure "InputColorMainBGMeasure" "ExecuteBatch 1-2"
 Group=TabLayout
 
@@ -393,20 +392,19 @@ Group=TabLayout
 
 [ResetColorInputBG]
 Meter=String
-MeterStyle=FormValue
+MeterStyle=FormIconBtn
 Text="[\xe72c]"
-FontFace=Segoe Fluent Icons
-FontSize=10
 Y=(#FormRowY0#+10*#FormRowH#+6)
 LeftMouseUpAction=[!WriteKeyValue Variables InputBG #InputBG_DEFAULT# "#@#SkinInfo.inc"][!Setvariable InputBG #InputBG_DEFAULT#][!RefreshApp]
 Group=TabLayout
 
 [InputColorInputBG]
 Meter=String
-MeterStyle=FormValue
+MeterStyle=FormField
 Text=#InputBG#
 X=(#FormControlX#+28)
 Y=(#FormRowY0#+10*#FormRowH#+6)
+W=100
 LeftMouseUpAction=!CommandMeasure "InputColorInputBGMeasure" "ExecuteBatch 1-2"
 Group=TabLayout
 
@@ -419,20 +417,19 @@ Group=TabLayout
 
 [ResetColorTextColor]
 Meter=String
-MeterStyle=FormValue
+MeterStyle=FormIconBtn
 Text="[\xe72c]"
-FontFace=Segoe Fluent Icons
-FontSize=10
 Y=(#FormRowY0#+11*#FormRowH#+6)
 LeftMouseUpAction=[!WriteKeyValue Variables TextColor #TextColor_DEFAULT# "#@#SkinInfo.inc"][!Setvariable TextColor #TextColor_DEFAULT#][!RefreshApp]
 Group=TabLayout
 
 [InputColorTextColor]
 Meter=String
-MeterStyle=FormValue
+MeterStyle=FormField
 Text=#TextColor#
 X=(#FormControlX#+28)
 Y=(#FormRowY0#+11*#FormRowH#+6)
+W=100
 LeftMouseUpAction=!CommandMeasure "InputColorTextColorMeasure" "ExecuteBatch 1-2"
 Group=TabLayout
 
@@ -445,20 +442,19 @@ Group=TabLayout
 
 [ResetColorTextBG]
 Meter=String
-MeterStyle=FormValue
+MeterStyle=FormIconBtn
 Text="[\xe72c]"
-FontFace=Segoe Fluent Icons
-FontSize=10
 Y=(#FormRowY0#+12*#FormRowH#+6)
 LeftMouseUpAction=[!WriteKeyValue Variables TextBG #TextBG_DEFAULT# "#@#SkinInfo.inc"][!Setvariable TextBG #TextBG_DEFAULT#][!RefreshApp]
 Group=TabLayout
 
 [InputColorTextBG]
 Meter=String
-MeterStyle=FormValue
+MeterStyle=FormField
 Text=#TextBG#
 X=(#FormControlX#+28)
 Y=(#FormRowY0#+12*#FormRowH#+6)
+W=100
 LeftMouseUpAction=!CommandMeasure "InputColorTextBGMeasure" "ExecuteBatch 1-2"
 Group=TabLayout
 
@@ -471,19 +467,18 @@ Group=TabLayout
 
 [ResetColorOpacity]
 Meter=String
-MeterStyle=FormValue
+MeterStyle=FormIconBtn
 Text="[\xe72c]"
-FontFace=Segoe Fluent Icons
-FontSize=10
 Y=(#FormRowY0#+13*#FormRowH#+6)
 LeftMouseUpAction=[!WriteKeyValue Variables Opacity #Opacity_DEFAULT# "#@#SkinInfo.inc"][!Setvariable Opacity #Opacity_DEFAULT#][!RefreshApp]
 Group=TabLayout
 
 [InputColorOpacity]
 Meter=String
-MeterStyle=FormValue
+MeterStyle=FormField
 Text=#Opacity#
 X=(#FormControlX#+28)
 Y=(#FormRowY0#+13*#FormRowH#+6)
+W=100
 LeftMouseUpAction=!CommandMeasure "InputColorOpacityMeasure" "ExecuteBatch 1-2"
 Group=TabLayout
