@@ -88,33 +88,23 @@ Hidden=1
 
 [SteamPathValue]
 Meter=String
-MeterStyle=FormValue
+MeterStyle=FormField
 Text=#SteamPath#
 Y=(#FormRowY0#+0*#FormRowH#+6)
 W=(#FormControlW#-28)
-H=14
-ClipString=1
-SolidColor=#TextBG#
-Padding=4,1,4,1
 LeftMouseUpAction=[!CommandMeasure InputSteamPathMeasure "ExecuteBatch 1"]
 Group=TabPaths
 Hidden=1
 
 [SteamPathBrowse]
 Meter=String
-MeterStyle=FormValue
+MeterStyle=FormIconBtn
 Text="[\xe8b7]"
-FontFace=Segoe Fluent Icons
-FontSize=12
-FontColor=#TextColor#
-SolidColor=#Dark2#,1
 Group=TabPaths
 Hidden=1
 X=(#FormControlX#+#FormControlW#-24)
 Y=(#FormRowY0#+0*#FormRowH#+4)
 LeftMouseUpAction=[!SetVariable _PickTarget SteamPath][!CommandMeasure FileChooseFolder "ChooseFolder 1"]
-MouseOverAction=[!SetOption SteamPathBrowse FontColor "#SettingsHover#"][!UpdateMeter SteamPathBrowse][!Redraw]
-MouseLeaveAction=[!SetOption SteamPathBrowse FontColor "#TextColor#"][!UpdateMeter SteamPathBrowse][!Redraw]
 
 ; --- Row 1: Game Dirs ---
 [GameDirsLabel]
@@ -127,33 +117,23 @@ Hidden=1
 
 [GameDirsValue]
 Meter=String
-MeterStyle=FormValue
+MeterStyle=FormField
 Text=#GameDirs#
 Y=(#FormRowY0#+1*#FormRowH#+6)
 W=(#FormControlW#-72)
-H=14
-ClipString=1
-SolidColor=#TextBG#
-Padding=4,1,4,1
 LeftMouseUpAction=[!CommandMeasure InputGameDirsMeasure "ExecuteBatch 1"]
 Group=TabPaths
 Hidden=1
 
 [GameDirsBrowse]
 Meter=String
-MeterStyle=FormValue
+MeterStyle=FormIconBtn
 Text="[\xe8b7]"
-FontFace=Segoe Fluent Icons
-FontSize=12
-FontColor=#TextColor#
-SolidColor=#Dark2#,1
 Group=TabPaths
 Hidden=1
 X=(#FormControlX#+#FormControlW#-64)
 Y=(#FormRowY0#+1*#FormRowH#+4)
 LeftMouseUpAction=[!SetVariable _PickTarget GameDirs][!SetVariable _GameDirsMode append][!CommandMeasure FileChooseFolder "ChooseFolder 1"]
-MouseOverAction=[!SetOption GameDirsBrowse FontColor "#SettingsHover#"][!UpdateMeter GameDirsBrowse][!Redraw]
-MouseLeaveAction=[!SetOption GameDirsBrowse FontColor "#TextColor#"][!UpdateMeter GameDirsBrowse][!Redraw]
 
 [GameDirsReplace]
 Meter=String
@@ -182,33 +162,23 @@ Hidden=1
 
 [RainMeterEXEValue]
 Meter=String
-MeterStyle=FormValue
+MeterStyle=FormField
 Text=#RainMeterEXE#
 Y=(#FormRowY0#+2*#FormRowH#+6)
 W=(#FormControlW#-28)
-H=14
-ClipString=1
-SolidColor=#TextBG#
-Padding=4,1,4,1
 LeftMouseUpAction=[!CommandMeasure InputRainMeterEXEMeasure "ExecuteBatch 1"]
 Group=TabPaths
 Hidden=1
 
 [RainMeterEXEBrowse]
 Meter=String
-MeterStyle=FormValue
+MeterStyle=FormIconBtn
 Text="[\xe8b7]"
-FontFace=Segoe Fluent Icons
-FontSize=12
-FontColor=#TextColor#
-SolidColor=#Dark2#,1
 Group=TabPaths
 Hidden=1
 X=(#FormControlX#+#FormControlW#-24)
 Y=(#FormRowY0#+2*#FormRowH#+4)
 LeftMouseUpAction=[!SetVariable _PickTarget RainMeterEXE][!CommandMeasure FileChooseFile "ChooseFile 1"]
-MouseOverAction=[!SetOption RainMeterEXEBrowse FontColor "#SettingsHover#"][!UpdateMeter RainMeterEXEBrowse][!Redraw]
-MouseLeaveAction=[!SetOption RainMeterEXEBrowse FontColor "#TextColor#"][!UpdateMeter RainMeterEXEBrowse][!Redraw]
 
 ; --- Row 3: Locale presets ---
 [LocaleLabel]
@@ -253,14 +223,10 @@ MouseLeaveAction=[!SetOption LocalePresetKoreana FontColor "#TextColor#"][!Updat
 ; --- Row 4: Locale value ---
 [LocaleValue]
 Meter=String
-MeterStyle=FormValue
+MeterStyle=FormField
 Text=#Locale#
 Y=(#FormRowY0#+4*#FormRowH#+6)
 W=#FormControlW#
-H=14
-ClipString=1
-SolidColor=#TextBG#
-Padding=4,1,4,1
 LeftMouseUpAction=[!CommandMeasure InputLocaleMeasure "ExecuteBatch 1"]
 Group=TabPaths
 Hidden=1
