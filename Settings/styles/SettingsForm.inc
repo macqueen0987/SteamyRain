@@ -14,6 +14,10 @@
 ;   Color:   Reset @ FormControlX, Value @ FormControlX+28
 ;   Browse:  X=(#FormControlX#+#FormControlW#-24)
 ;   Toggle:  MeterStyle=FormToggle; X=#FormControlX#; Y=(row)+8
+;   Field:   MeterStyle=FormField (click-to-edit value box)
+;   IconBtn: MeterStyle=FormIconBtn (glyph button, hover built-in)
+;   Pill:    MeterStyle=FormPill (preset chip; pair with a String-measure
+;            selection check that flips SolidColor/FontColor on match)
 ; Do NOT use OptionStyle Y=2R or HalfW for form rows.
 ;=================================================
 
@@ -45,7 +49,7 @@ FontSize=10
 FontWeight=600
 FontColor=#TextColor#,200
 SolidColor=#TextBG#
-Padding=8,6,8,6
+Padding=8,(6+#FormSectionGap#),8,6
 W=#ContentW#
 X=#Pad#
 
@@ -60,3 +64,32 @@ X=#FormControlX#
 MouseOverAction=[!SetOption #CURRENTSECTION# Button "StrokeWidth 2 | Stroke Color #SettingsHover#"][!UpdateMeter #CURRENTSECTION#][!ReDraw]
 MouseLeaveAction=[!SetOption #CURRENTSECTION# Button "StrokeWidth 2 | Stroke Color #Dark2#"][!UpdateMeter #CURRENTSECTION#][!ReDraw]
 DynamicVariables=1
+
+[FormField]
+DynamicVariables=1
+AntiAlias=1
+FontSize=10
+FontColor=#TextColor#,180
+SolidColor=#TextBG#
+Padding=4,1,4,1
+H=14
+ClipString=1
+
+[FormIconBtn]
+DynamicVariables=1
+AntiAlias=1
+FontFace=Segoe Fluent Icons
+FontSize=11
+FontColor=#TextColor#
+SolidColor=#Dark2#,1
+MouseActionCursor=0
+MouseOverAction=[!SetOption #CURRENTSECTION# FontColor "#SettingsHover#"][!UpdateMeter #CURRENTSECTION#][!Redraw]
+MouseLeaveAction=[!SetOption #CURRENTSECTION# FontColor "#TextColor#"][!UpdateMeter #CURRENTSECTION#][!Redraw]
+
+[FormPill]
+DynamicVariables=1
+AntiAlias=1
+FontSize=9
+FontColor=#TextColor#
+SolidColor=#TextBG#
+Padding=4,2,4,2
