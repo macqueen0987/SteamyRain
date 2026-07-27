@@ -2,6 +2,8 @@
 ; Used by Hidden/Hidden.ini (standalone host) and Settings/tabs/TabHidden.inc.
 ; NameStyle is HiddenNameStyle here so Settings' NameStyle is not overwritten.
 ; Host chrome (Header/Close/Logo/Title) and ModeCheck/MoveWindow/SettingCheck stay in Hidden.ini.
+; Required host vars: HiddenListW, HiddenListH, EntrySize (or HiddenEntrySize), HiddenListX,
+; HiddenListY, HiddenChromeY, HiddenListHidden, VisibleTilesS (~ HiddenListH/EntrySize).
 
 ;_________________________________________________
 ;____________________MEASURES_____________________
@@ -34,7 +36,7 @@ Disabled=1
 
 [ContainerSize]
 Measure=Calc
-Formula=((#EntrySize#*#VisibleTilesS#)+2)
+Formula=#HiddenListH#
 OnUpdateAction=[!UpdatemeterGroup Container][!UpdatemeterGroup HeaderContainer][!UpdatemeterGroup Container][!UpdateMeterGroup Arrows][!ReDraw]
 DynamicVariables=1
 
@@ -175,7 +177,7 @@ ClipString=1
 MouseOverAction=[!SetOption #CURRENTSECTION# SolidColor #Dark1#][!UpdateMeter #CURRENTSECTION#][!ReDraw]
 MouseLeaveAction=[!SetOption #CURRENTSECTION# SolidColor #TextBG#][!UpdateMeter #CURRENTSECTION#][!ReDraw]
 Y=([MoveNames:H]+2)r
-W=160
+W=(#HiddenListW#-65)
 
 [VisStyle]
 Text="[\xed1a]"
@@ -191,7 +193,7 @@ DynamicVariables=1
 FontSize=12
 AntiAlias=1
 Y=-#EntrySize#R
-X=220
+X=(#HiddenListW#-5)
 
 [HiddenButtonStyle]
 SolidColor=#Dark2#,1
@@ -215,7 +217,7 @@ AntiAlias=1
 ;_____________________METERS______________________
 [Container]
 Meter=Shape
-Shape=Rectangle 0,0,225,[ContainerSize] | Fill Color #TextColor# | StrokeWidth 0 | Fill LinearGradient #fadeMode# | Scale #Container#,#Container#,0,0
+Shape=Rectangle 0,0,#HiddenListW#,[ContainerSize] | Fill Color #TextColor# | StrokeWidth 0 | Fill LinearGradient #fadeMode# | Scale #Container#,#Container#,0,0
 ON=-90 | #Dark2#,1 ; #START# | #Dark2# ; #UP# | #Dark2# ; #DOWN# | #Dark2#,1 ; 1.0
 OFF=180 | #Dark2# ; #START# | #Dark2# ; #UP# | #Dark2# ; #DOWN# | #Dark2# ; 1.0
 MouseScrollUpAction=[!SetVariable Offset (Clamp((#Offset#-#EntrySize#),0,([Lenght]-#EntrySize#*#VisibleTilesS#)))][!UpdateMeterGroup Games][!UpdateMeasure Offset][!HideMeterGroup QuickSettings][!ReDraw]
@@ -223,6 +225,7 @@ MouseScrollDownAction=[!SetVariable Offset (Clamp((#Offset#+#EntrySize#),0,([Len
 DynamicVariables=1
 Group=Container | Scaling | Games | TabHidden
 Hidden=#HiddenListHidden#
+X=#HiddenListX#
 Y=#HiddenListY#
 
 ;_________________________________________________
@@ -248,7 +251,7 @@ InlineSetting=Shadow | 0 | -1 | 2 | #Dark2#
 MeterStyle=HiddenButtonStyle
 Group=Incr | Mode | Arrows | TabHidden
 Hidden=1
-X=112.5
+X=(#HiddenListX#+#HiddenListW#/2)
 Y=(#HiddenListY#-5)
 
 [ArrowMore]
@@ -276,8 +279,9 @@ LeftMouseUpAction=[!EnableMeasureGroup UnHideAll][!UpdateMeasure UnHideAllGames]
 MouseOverAction=[!Setoption UnHideAllButton SolidColor #TextBG#][!UpdateMeter UnHideAllButton][!ReDraw]
 MouseLeaveAction=[!Setoption UnHideAllButton SolidColor #SettingsHover#][!UpdateMeter UnHideAllButton][!ReDraw]
 Hidden=1
-Y=(Clamp((([HiddenGames]*#EntrySize#)+#HiddenListY#+4),(#HiddenListY#+35),(#EntrySize#*#VisibleTilesS#+#EntrySize#+#HiddenListY#-20)))
-X=r
+; Chrome row: Settings uses ContentTop; standalone Hidden.ini sets HiddenChromeY near list bottom
+Y=#HiddenChromeY#
+X=(#HiddenListX#+#HiddenListW#/2)
 
 [NoGameText]
 Meter=String
@@ -287,4 +291,4 @@ SolidColor=#TextBG#
 Group=TabHidden
 Hidden=#HiddenListHidden#
 Y=(#HiddenListY#+3)
-X=112.5
+X=(#HiddenListX#+#HiddenListW#/2)

@@ -1,5 +1,6 @@
-; Hidden tab — shared list UI (no second Close; Settings chrome owns window close).
+; Hidden tab — Unhide All chrome at ContentTop; list below (HiddenListY).
 ; HiddenList meters use Group TabHidden + #HiddenListHidden# (TabSwitch sets 0 on tab 4, 1 off-tab); Container clips dynamic rows.
+; Sizing vars (HiddenListW/H, HiddenEntrySize, HiddenChromeY) live in Settings.ini [Variables].
 
 @include30=#@#extraMeters\HiddenList.inc
 
@@ -14,5 +15,5 @@ FontColor=#TextColor#
 SolidColor=#Dark2#,1
 Group=TabHidden
 Hidden=1
-Y=36
-X=8
+Y=#ContentTop#
+X=#Pad#

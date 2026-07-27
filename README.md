@@ -30,6 +30,8 @@ typed via click-to-edit (InputText).
 ## Settings
 Open via QuickSettings → Settings, or middle-click the header icon.
 
+The Settings window is **520×640**, with scrollable Extra and Hidden lists.
+
 Tabs:
 - **Layout** — tile size, visibility toggles, colors
 - **Paths** — Steam / library folders / Rainmeter.exe / locale (Browse uses FileChoose)
