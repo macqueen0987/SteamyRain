@@ -167,9 +167,15 @@ Group=TabLayout
 [TileSizeBar]
 Meter=Shape
 X=#FormControlX#
-Y=(#FormRowY0#+10)
-Shape=Rectangle 0,0,#FormControlW#,8,2 | Fill Color #Dark1# | StrokeWidth 0
-Shape2=Rectangle 0,0,[TileSizeCheck],8,2 | Fill Color #TextColor#,200 | StrokeWidth 0
+Y=(#FormRowY0#+4)
+; Shape1 is a transparent 20px band so the thin track is easy to hit; the
+; track and fill are drawn 6px inside it, keeping their original visual Y.
+Shape=Rectangle 0,0,#FormControlW#,20 | Fill Color 0,0,0,1 | StrokeWidth 0
+Shape2=Rectangle 0,6,#FormControlW#,8,2 | Fill Color #Dark1# | StrokeWidth 0
+Shape3=Rectangle 0,6,[TileSizeCheck],8,2 | Fill Color #TextColor#,200 | StrokeWidth 0
+; Click anywhere on the track to jump to that value. $MouseX:%$ is 0-100
+; across this meter; TilePixels spans 170-300, so percent * 1.3 + 170.
+LeftMouseUpAction=[!WriteKeyValue Variables TilePixels "(Clamp((170+($MouseX:%$*1.3)),170,300))" "#@#SkinInfo.inc"][!SetVariable TilePixels "(Clamp((170+($MouseX:%$*1.3)),170,300))"][!UpdateMeasure TileSizeCheck][!RefreshApp]
 MiddleMouseUpAction=[!WriteKeyValue Variables TilePixels "225" "#@#SkinInfo.inc"][!SetVariable TilePixels "225"][!UpdateMeasure TileSizeCheck][!RefreshApp]
 MouseScrollDownAction=[!WriteKeyValue Variables TilePixels "(Clamp((#TilePixels#-5),170,300))" "#@#SkinInfo.inc"][!SetVariable TilePixels "(Clamp((#TilePixels#-5),170,300))"][!UpdateMeasure TileSizeCheck][!RefreshApp]
 MouseScrollUpAction=[!WriteKeyValue Variables TilePixels "(Clamp((#TilePixels#+5),170,300))" "#@#SkinInfo.inc"][!SetVariable TilePixels "(Clamp((#TilePixels#+5),170,300))"][!UpdateMeasure TileSizeCheck][!RefreshApp]

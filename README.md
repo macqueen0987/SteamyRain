@@ -13,10 +13,22 @@ You must have python installed!
 It is using a python script to fetch the required information and images from your steam folder and build meters dynamically.
 
 ### FileChoose plugin
-Settings Paths/Extra Browse buttons use the bundled FileChoose plugin at
-`@Resources/Plugins/FileChoose.dll`. If Browse does nothing, confirm the DLL
-is present and set `HasFileChooseFlag=1` in Settings. Paths can always be
-typed via click-to-edit (InputText).
+Settings Paths/Extra Browse buttons use the FileChoose plugin, bundled at
+`@Resources/Plugins/FileChoose.dll`.
+
+**It must be copied to `%APPDATA%\Rainmeter\Plugins\` to work.** Rainmeter
+loads skin plugins with `LOAD_WITH_ALTERED_SEARCH_PATH`, so a plugin left in
+`@Resources/Plugins` cannot resolve its own dependency on `Rainmeter.dll` and
+fails to load with error 126 — Browse then silently does nothing:
+
+```powershell
+Copy-Item "@Resources\Plugins\FileChoose.dll" "$env:APPDATA\Rainmeter\Plugins\"
+```
+
+If Browse still does nothing, enable Rainmeter logging (Manage → Settings →
+Debug) and check `%APPDATA%\Rainmeter\Rainmeter.log` for plugin load errors,
+and confirm `HasFileChooseFlag=1` in Settings. Paths can always be typed via
+click-to-edit (InputText) regardless.
 
 ---
 
