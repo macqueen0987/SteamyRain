@@ -108,7 +108,7 @@ Group=ExtraHas
 [ExtraRow1Name]
 Meter=String
 Text=#Egame1#
-MeterStyle=NameStyle
+MeterStyle=FormField
 Group=TabExtra | ExtraRow1
 Container=ExtraListContainer
 DynamicVariables=1
@@ -116,16 +116,12 @@ Hidden=[ExtraHas1]
 Y=(((1-1)*#ExtraRowH#+16)-#ExtraOffset#)
 X=0
 W=110
-H=14
-ClipString=1
-SolidColor=#TextBG#
-Padding=2,1,2,1
 LeftMouseUpAction=[!SetVariable ExtraEditIndex 1][!SetOption InputExtraNameMeasure DefaultValue "#Egame1#"][!SetOption InputExtraNameMeasure Y "[ExtraRow1Name:Y]"][!CommandMeasure InputExtraNameMeasure "ExecuteBatch 1"]
 
 [ExtraRow1Path]
 Meter=String
 Text=#Egame1Path#
-MeterStyle=NameStyle
+MeterStyle=FormField
 Group=TabExtra | ExtraRow1
 Container=ExtraListContainer
 DynamicVariables=1
@@ -133,83 +129,55 @@ Hidden=[ExtraHas1]
 Y=r
 X=114
 W=(#ContentW#-234)
-H=14
-ClipString=1
-SolidColor=#TextBG#
-Padding=2,1,2,1
 LeftMouseUpAction=[!SetVariable ExtraEditIndex 1][!SetOption InputExtraPathMeasure DefaultValue "#Egame1Path#"][!SetOption InputExtraPathMeasure Y "[ExtraRow1Path:Y]"][!CommandMeasure InputExtraPathMeasure "ExecuteBatch 1"]
 
 [ExtraRow1Browse]
 Meter=String
+MeterStyle=FormIconBtn
 Text="[\xe8b7]"
-FontFace=Segoe Fluent Icons
-FontSize=11
-FontColor=#TextColor#
-AntiAlias=1
 DynamicVariables=1
 Group=TabExtra | ExtraRow1
 Container=ExtraListContainer
 Hidden=[ExtraHas1]
 Y=r
 X=(#ContentW#-112)
-SolidColor=#Dark2#,1
 LeftMouseUpAction=[!SetVariable _PickTarget Egame1Path][!SetVariable ExtraEditIndex 1][!CommandMeasure FileChooseFile "ChooseFile 1"]
-MouseOverAction=[!SetOption ExtraRow1Browse FontColor "#SettingsHover#"][!UpdateMeter ExtraRow1Browse][!Redraw]
-MouseLeaveAction=[!SetOption ExtraRow1Browse FontColor "#TextColor#"][!UpdateMeter ExtraRow1Browse][!Redraw]
 
 [ExtraRow1Vis]
 Meter=String
+MeterStyle=FormIconBtn
 Text="[\xe7b3]"
-FontFace=Segoe Fluent Icons
-FontSize=11
-FontColor=#TextColor#
-AntiAlias=1
 DynamicVariables=1
 Group=TabExtra | ExtraRow1
 Container=ExtraListContainer
 Hidden=[ExtraHas1]
 Y=r
 X=(#ContentW#-84)
-SolidColor=#Dark2#,1
 LeftMouseUpAction=[!SetVariable ExtraEditIndex 1][!EnableMeasure ExtraToggleVis][!UpdateMeasure ExtraToggleVis]
-MouseOverAction=[!SetOption ExtraRow1Vis FontColor "#SettingsHover#"][!UpdateMeter ExtraRow1Vis][!Redraw]
-MouseLeaveAction=[!SetOption ExtraRow1Vis FontColor "#TextColor#"][!UpdateMeter ExtraRow1Vis][!Redraw]
 
 [ExtraRow1Icon]
 Meter=String
+MeterStyle=FormIconBtn
 Text="[\xe8b9]"
-FontFace=Segoe Fluent Icons
-FontSize=11
-FontColor=#TextColor#
-AntiAlias=1
 DynamicVariables=1
 Group=TabExtra | ExtraRow1
 Container=ExtraListContainer
 Hidden=[ExtraHas1]
 Y=r
 X=(#ContentW#-56)
-SolidColor=#Dark2#,1
 LeftMouseUpAction=[!SetVariable _PickSlot 1][!SetVariable _PickSlotPadded "001"][!SetVariable ExtraEditIndex 1][!CommandMeasure FileChooseImage "ChooseImage 1"]
-MouseOverAction=[!SetOption ExtraRow1Icon FontColor "#SettingsHover#"][!UpdateMeter ExtraRow1Icon][!Redraw]
-MouseLeaveAction=[!SetOption ExtraRow1Icon FontColor "#TextColor#"][!UpdateMeter ExtraRow1Icon][!Redraw]
 
 [ExtraRow1Clear]
 Meter=String
+MeterStyle=FormIconBtn
 Text="[\xe74d]"
-FontFace=Segoe Fluent Icons
-FontSize=11
-FontColor=#TextColor#
-AntiAlias=1
 DynamicVariables=1
 Group=TabExtra | ExtraRow1
 Container=ExtraListContainer
 Hidden=[ExtraHas1]
 Y=r
 X=(#ContentW#-28)
-SolidColor=#Dark2#,1
 LeftMouseUpAction=[!SetVariable ExtraEditIndex 1][!EnableMeasure ExtraClearSlot][!UpdateMeasure ExtraClearSlot]
-MouseOverAction=[!SetOption ExtraRow1Clear FontColor "#SettingsHover#"][!UpdateMeter ExtraRow1Clear][!Redraw]
-MouseLeaveAction=[!SetOption ExtraRow1Clear FontColor "#TextColor#"][!UpdateMeter ExtraRow1Clear][!Redraw]
 
 ; --- Slot 2 ---
 [ExtraHas2]
