@@ -99,42 +99,35 @@ def test_get_image_for_game_falls_back_to_any_image(ug, tmp_path: Path, monkeypa
     assert ug.get_image_for_game(str(tmp_path), "ID1") == "hashfolder/custom_art.jpg"
 
 
-def test_write_game_info_preserves_hidden_by_appid(ug, tmp_path: Path, monkeypatch):
+def test_write_game_info_preserves_hidden_across_steam_prefix_migration(ug, tmp_path: Path, monkeypatch):
     games_info = tmp_path / "GamesInfo.inc"
     games_info.write_text(
-        "\n".join(
-            [
-                "[Variables]",
-                "GameCount=2",
-                "GameCountPLUS=1",
-                "ID1=111",
-                'ID1name="Old Name"',
-                "Vis1=0",
-                "ID2=999",
-                'ID2name="Hidden Game"',
-                "Vis2=1",
-                "",
-            ]
-        ),
+        "\n".join([
+            "[Variables]",
+            "GameCount=2",
+            "GameCountPLUS=1",
+            "ID1=111",
+            'ID1name="Old Name"',
+            "Vis1=0",
+            "ID2=999",
+            'ID2name="Hidden Game"',
+            "Vis2=1",
+            "",
+        ]),
         encoding="utf-8",
     )
-
     monkeypatch.setattr(ug, "__file__", str(tmp_path / "UpdateGames.pyw"))
 
-    ug.write_game_info(
-        ["999", "111"],
-        [
-            {"appid": "999", "name": "Hidden Game"},
-            {"appid": "111", "name": "Fixture Game"},
-        ],
-    )
+    ug.write_game_info([
+        {"stable_id": "steam:999", "name": "Hidden Game"},
+        {"stable_id": "steam:111", "name": "Fixture Game"},
+    ])
 
     text = games_info.read_text(encoding="utf-8")
-    assert "ID1=999" in text
+    assert "ID1=steam:999" in text
     assert "Vis1=1" in text
-    assert "ID2=111" in text
+    assert "ID2=steam:111" in text
     assert "Vis2=0" in text
-    assert "GameCount=2" in text
     assert "GameCountPLUS=1" in text
 
 

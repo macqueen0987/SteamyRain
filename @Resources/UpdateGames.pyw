@@ -273,9 +273,9 @@ def write_meters(output, image, image_path, search, hidden_games):
 #__________________________________________________________________________________________________________________________#
 #--------------------------------------------Function To update GamesInfo.inc----------------------------------------------#
 
-def write_game_info(processed_ids, games_info):
+def write_game_info(records):
     GamesInfoFile = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'GamesInfo.inc')
-    existing_hidden_appids = set()
+    existing_hidden_ids = set()
 
     if os.path.exists(GamesInfoFile):
         config_games_info = CaseSensitiveConfigParser()
@@ -287,30 +287,30 @@ def write_game_info(processed_ids, games_info):
                     index = key[3:]
                     id_key = f'ID{index}'
                     if id_key in vars_section:
-                        existing_hidden_appids.add(str(vars_section[id_key]))
+                        existing_hidden_ids.add(normalize_stable_id(str(vars_section[id_key])))
 
     with open(GamesInfoFile, 'w', encoding='utf-8') as combined_file:
         combined_file.write('[Variables]\n')
-        game_count_value = len(processed_ids)
-        combined_file.write(f'GameCount={game_count_value}\n')
-        hidden_variable_value = len(processed_ids) - sum(1 for app_id in processed_ids if app_id in existing_hidden_appids)
-        combined_file.write(f'GameCountPLUS={hidden_variable_value}\n')
+        combined_file.write(f'GameCount={len(records)}\n')
+        visible_count = sum(
+            1 for record in records
+            if normalize_stable_id(record['stable_id']) not in existing_hidden_ids
+        )
+        combined_file.write(f'GameCountPLUS={visible_count}\n')
 
-        for index, game_info in enumerate(games_info, start=1):
-            app_id = str(game_info.get('appid', ''))
-            if app_id in processed_ids:
-                combined_file.write(f'ID{index}={app_id}\n')
-                game_name = game_info.get('name', '')
-                game_name = ''.join(e for e in game_name if e.isalnum() or e.isspace())
-                combined_file.write(f'ID{index}name="{game_name}"\n')
-
-                hidden_value = 1 if app_id in existing_hidden_appids else 0
-                combined_file.write(f'Vis{index}={hidden_value}\n')
+        for index, record in enumerate(records, start=1):
+            stable_id = record['stable_id']
+            combined_file.write(f'ID{index}={stable_id}\n')
+            game_name = record.get('name', '')
+            game_name = ''.join(e for e in game_name if e.isalnum() or e.isspace())
+            combined_file.write(f'ID{index}name="{game_name}"\n')
+            hidden_value = 1 if normalize_stable_id(stable_id) in existing_hidden_ids else 0
+            combined_file.write(f'Vis{index}={hidden_value}\n')
 #__________________________________________________________________________________________________________________________#
 #----------------------------------------------------SCRIPT START HERE-----------------------------------------------------#
 
 def main():
-    global RainmeterPath, skinPath, locale, processed_ids, games_info, game_count, extra_games_count, extra_games_vars
+    global RainmeterPath, skinPath, locale, processed_ids, game_count, extra_games_count, extra_games_vars
 
     # 1: Set Variables
     variables = get_variables('SkinInfo.inc')
@@ -332,28 +332,18 @@ def main():
 
     # 2: Find installed game IDs and Names from appmanifest files
     status = "Processing appmanifest files..."
-    processed_ids = []
-    games_info = []
     update_rainmeter_status(status)
-    for game_dir in game_dirs:
-        status = f"Processing files of {game_dir}"
-        update_rainmeter_status(status)
-        if not os.path.isdir(game_dir):
-            update_rainmeter_status(f"Missing library: {game_dir}")
-            continue
-        appmanifest_files = [f for f in os.listdir(game_dir) if f.startswith('appmanifest_')]
-        processed_ids_gamedir, games_info_gamedir = process_appmanifest_files(appmanifest_files, game_dir)
-        processed_ids = processed_ids + processed_ids_gamedir
-        games_info = games_info + games_info_gamedir
+    records = scan_steam_libraries(game_dirs, image_path, update_rainmeter_status)
 
     # 3: Write new GamesInfo.inc
     status = "Writing new GamesInfo.inc..."
     update_rainmeter_status(status)
-    write_game_info(processed_ids, games_info)
+    write_game_info(records)
 
     # 4: Set variables for meters creation
     # ExtraGamesCount = max used index (UI). Empty middle EgameN names skipped in write_meters.
-    game_count = len(processed_ids)
+    game_count = len(records)
+    processed_ids = [r["stable_id"].split(":", 1)[1] for r in records if r["stable_id"].startswith("steam:")]
     config_extra_games = CaseSensitiveConfigParser()
     config_extra_games.read(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'NonSteamGames.inc'), encoding='utf-8')
     extra_games_count = int(config_extra_games.get('Variables', 'ExtraGamesCount', fallback='0'))
