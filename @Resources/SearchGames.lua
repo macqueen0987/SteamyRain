@@ -25,6 +25,8 @@ function Update()
     local result = nil
     if tonumber(searchInput) then
         result = GetGameInfoByID(searchInput)
+    elseif string.find(searchInput, ":", 1, true) then
+        result = GetGameInfoByID(searchInput)
     else
         result = GetGameInfoByName(searchInput)
     end
@@ -73,7 +75,7 @@ end
 -- Function to get game information by ID
 function GetGameInfoByID(gameID)
     for i, ID in pairs(gameIDs) do
-        if ID == gameID then
+        if ID == gameID or ID == ("steam:" .. gameID) then
             SKIN:Bang('!ShowMeterGroup', 'G' .. i)
             gameCount = gameCount + 1
             result = gameCount
