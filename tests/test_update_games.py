@@ -189,3 +189,16 @@ def test_iter_extra_game_indices_skips_empty_slots(ug):
         "Egame3": "Nikke",
     }
     assert list(ug.iter_extra_game_indices(vars_, 3)) == [1, 3]
+
+
+def test_merge_steam_then_xbox_order(ug):
+    steam = [{"stable_id": "steam:1", "name": "A", "launch": "[steam://rungameid/1]", "image_path": "a"}]
+    xbox = [{"stable_id": "xbox:Z", "name": "B", "launch": '[explorer "x"]', "image_path": "b"}]
+    assert ug.merge_game_records(steam, xbox) == steam + xbox
+
+
+def test_xbox_scan_importable_from_update_games_path(ug):
+    import xbox_scan
+
+    assert hasattr(xbox_scan, "discover_xbox_roots")
+    assert hasattr(xbox_scan, "scan_xbox_libraries")

@@ -1,9 +1,16 @@
 import os
 import re
 import subprocess
+import sys
 import configparser
 
-PLACEHOLDER_IMAGE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "img", "placeholder_game.jpg")
+script_dir = os.path.dirname(os.path.abspath(__file__))
+if script_dir not in sys.path:
+    sys.path.insert(0, script_dir)
+
+from xbox_scan import discover_xbox_roots, scan_xbox_libraries
+
+PLACEHOLDER_IMAGE = os.path.join(script_dir, "img", "placeholder_game.jpg")
 
 class CaseSensitiveConfigParser(configparser.ConfigParser):
     def __init__(self, *args, **kwargs):
@@ -232,6 +239,10 @@ def fill_steam_image_paths(records, library_cache) -> None:
         image_path = resolve_steam_image(library_cache, appid)
         record["image_path"] = image_path or PLACEHOLDER_IMAGE
 
+
+def merge_game_records(steam_records, xbox_records):
+    return list(steam_records) + list(xbox_records)
+
 #__________________________________________________________________________________________________________________________#
 #--------------------------------------Extra slots: skip empty names at scan time------------------------------------------#
 
@@ -360,8 +371,18 @@ def main():
     # 2: Find installed game IDs and Names from appmanifest files
     status = "Processing appmanifest files..."
     update_rainmeter_status(status)
-    records = scan_steam_libraries(game_dirs, image_path, update_rainmeter_status)
-    fill_steam_image_paths(records, image_path)
+    steam_records = scan_steam_libraries(game_dirs, image_path, update_rainmeter_status)
+    fill_steam_image_paths(steam_records, image_path)
+
+    xboxdirs_raw = variables.get('xboxdirs', '')
+    user_dirs = [d.strip() for d in xboxdirs_raw.split(',') if d.strip()]
+    roots = discover_xbox_roots(user_dirs)
+    if not roots:
+        update_rainmeter_status("Xbox: no libraries found")
+    xbox_records = scan_xbox_libraries(roots, PLACEHOLDER_IMAGE, update_rainmeter_status)
+    if roots and not xbox_records:
+        update_rainmeter_status("Xbox: no games found")
+    records = merge_game_records(steam_records, xbox_records)
 
     # 3: Write new GamesInfo.inc
     status = "Writing new GamesInfo.inc..."
