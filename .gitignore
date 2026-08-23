@@ -16,3 +16,4 @@ __pycache__/
 venv/
 DEVNOTES.md
 docs/dev/
+.worktrees/
