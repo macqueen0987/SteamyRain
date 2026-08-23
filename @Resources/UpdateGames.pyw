@@ -262,7 +262,27 @@ def iter_extra_game_indices(extra_vars: dict, extra_games_count: int):
 #__________________________________________________________________________________________________________________________#
 #------------------------------------------------Function to write meters--------------------------------------------------#
 
-def write_meters(output, image, search, hidden_games, records=None):
+def resolve_meter_image_name(record, image_mode, library_cache=None):
+    image_name = record["image_path"] or PLACEHOLDER_IMAGE
+    if image_mode == "Logo":
+        return image_name
+
+    stable_id = record.get("stable_id", "")
+    if stable_id.startswith("xbox:"):
+        return image_name
+    if os.path.normcase(image_name) == os.path.normcase(PLACEHOLDER_IMAGE):
+        return image_name
+
+    if stable_id.startswith("steam:") and library_cache:
+        appid = stable_id.split(":", 1)[1]
+        icon_path = os.path.join(library_cache, appid, "icon.jpg")
+        if os.path.isfile(icon_path):
+            return icon_path
+
+    return image_name
+
+
+def write_meters(output, image, search, hidden_games, records=None, library_cache=None):
     output_folder = 'dynamicMeters'
     subfolder_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), output_folder)
     os.makedirs(subfolder_path, exist_ok=True)
@@ -272,9 +292,7 @@ def write_meters(output, image, search, hidden_games, records=None):
     for i, record in enumerate(records or [], 1):
         id_key = f'ID{i}'
         is_hidden = hidden_games
-        image_name = record["image_path"] or PLACEHOLDER_IMAGE
-        if image != "Logo":
-            image_name = os.path.join(os.path.dirname(image_name), "icon.jpg")
+        image_name = resolve_meter_image_name(record, image, library_cache)
         meter_data = create_meter(
             id_key, i, image, search, is_hidden,
             launch=record["launch"],
@@ -407,18 +425,18 @@ def main():
         image = 'Logo'
         hidden_games = False
         search = False
-        write_meters(output, image, search, hidden_games, records=records)
+        write_meters(output, image, search, hidden_games, records=records, library_cache=image_path)
 
         output = 2
         hidden_games = False
-        write_meters(output, image, search, hidden_games, records=records)
+        write_meters(output, image, search, hidden_games, records=records, library_cache=image_path)
 
         image = 'Icon'
         hidden_games = True
-        write_meters(output, image, search, hidden_games, records=records)
+        write_meters(output, image, search, hidden_games, records=records, library_cache=image_path)
 
         search = True
-        write_meters(output, image, search, hidden_games, records=records)
+        write_meters(output, image, search, hidden_games, records=records, library_cache=image_path)
     else:
         # No games found, create empty output files
         subfolder_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dynamicMeters')

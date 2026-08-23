@@ -17,6 +17,19 @@ def load_xbox():
     return mod
 
 
+def test_read_gaming_root_utf16_le_bom_control_byte(tmp_path: Path):
+    xb = load_xbox()
+    drive = tmp_path / "D"
+    drive.mkdir()
+    lib = drive / "XboxGames"
+    lib.mkdir()
+    payload = b"\xff\xfe" + b"\x01\x00" + "XboxGames".encode("utf-16-le")
+    (drive / ".GamingRoot").write_bytes(payload)
+
+    result = xb.read_gaming_root(str(drive / ".GamingRoot"))
+    assert result == str(lib.resolve())
+
+
 def test_discover_xbox_roots_user_gamingroot_and_default(tmp_path: Path):
     xb = load_xbox()
     user = tmp_path / "CustomXbox"
@@ -105,3 +118,34 @@ def test_scan_xbox_libraries_skips_non_games(tmp_path: Path):
     records = xb.scan_xbox_libraries([str(root)], ph, lambda m: None)
     assert len(records) == 1
     assert records[0]["stable_id"] == "xbox:Cool"
+
+
+def test_scan_xbox_libraries_skips_bad_game_sibling(tmp_path: Path, monkeypatch):
+    xb = load_xbox()
+    root = tmp_path / "XboxGames"
+    good = root / "CoolGame" / "Content"
+    good.mkdir(parents=True)
+    (good / "MicrosoftGame.config").write_text(
+        '<Game><ShellVisuals DefaultDisplayName="Cool Game" /><ExecutableList><Executable Name="g.exe"/></ExecutableList><Identity Name="Cool"/></Game>',
+        encoding="utf-8",
+    )
+    (good / "g.exe").write_bytes(b"MZ")
+    (root / "BadGame").mkdir()
+
+    real_parse = xb.parse_xbox_game_dir
+
+    def parse_with_failure(game_dir, placeholder_image):
+        if Path(game_dir).name == "BadGame":
+            raise PermissionError("denied")
+        return real_parse(game_dir, placeholder_image)
+
+    monkeypatch.setattr(xb, "parse_xbox_game_dir", parse_with_failure)
+
+    messages: list[str] = []
+    ph = str(tmp_path / "ph.jpg")
+    Path(ph).write_bytes(b"\xff\xd8\xff\xd9")
+    records = xb.scan_xbox_libraries([str(root)], ph, messages.append)
+
+    assert len(records) == 1
+    assert records[0]["stable_id"] == "xbox:Cool"
+    assert any("BadGame" in msg and "PermissionError" in msg for msg in messages)

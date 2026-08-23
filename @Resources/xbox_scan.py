@@ -23,24 +23,42 @@ _RE_PACKAGE_FAMILY_NAME = re.compile(
 )
 
 
+def _decode_gaming_root_text(raw: bytes) -> str | None:
+    if raw.startswith(b"\xff\xfe") or raw.startswith(b"\xfe\xff"):
+        try:
+            text = raw.decode("utf-16")
+        except UnicodeDecodeError:
+            return None
+    elif raw.startswith(b"\xef\xbb\xbf"):
+        try:
+            text = raw.decode("utf-8-sig")
+        except UnicodeDecodeError:
+            return None
+    else:
+        text = None
+        for encoding in ("utf-16-le", "utf-8"):
+            try:
+                text = raw.decode(encoding)
+                break
+            except UnicodeDecodeError:
+                continue
+        if text is None:
+            return None
+
+    text = text.replace("\x00", "").lstrip("\ufeff")
+    while text and not text[0].isprintable():
+        text = text[1:]
+    text = text.strip()
+    return text or None
+
+
 def read_gaming_root(file_path: str) -> str | None:
     path = Path(file_path)
     if not path.is_file():
         return None
 
-    raw = path.read_bytes()
-    text: str | None = None
-    for encoding in ("utf-16-le", "utf-8"):
-        try:
-            text = raw.decode(encoding)
-            break
-        except UnicodeDecodeError:
-            continue
+    text = _decode_gaming_root_text(path.read_bytes())
     if text is None:
-        return None
-
-    text = text.replace("\x00", "").strip()
-    if not text:
         return None
 
     library = Path(text)
@@ -111,7 +129,7 @@ def _read_text_file(path: Path) -> str | None:
         return None
     try:
         return path.read_text(encoding="utf-8")
-    except OSError:
+    except (OSError, UnicodeDecodeError):
         return None
 
 
@@ -267,7 +285,11 @@ def scan_xbox_libraries(
             if not child.is_dir():
                 continue
 
-            record = parse_xbox_game_dir(str(child), placeholder_image)
+            try:
+                record = parse_xbox_game_dir(str(child), placeholder_image)
+            except (OSError, UnicodeDecodeError) as exc:
+                status_fn(f"Xbox: skipped {child.name} ({exc.__class__.__name__})")
+                continue
             if record is None:
                 continue
 

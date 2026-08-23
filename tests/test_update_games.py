@@ -202,3 +202,70 @@ def test_xbox_scan_importable_from_update_games_path(ug):
 
     assert hasattr(xbox_scan, "discover_xbox_roots")
     assert hasattr(xbox_scan, "scan_xbox_libraries")
+
+
+def test_resolve_meter_image_name_icon_mode(ug, tmp_path: Path, monkeypatch):
+    monkeypatch.setattr(ug, "PLACEHOLDER_IMAGE", str(tmp_path / "placeholder_game.jpg"), raising=False)
+    placeholder = ug.PLACEHOLDER_IMAGE
+    Path(placeholder).write_bytes(b"\xff\xd8\xff\xd9")
+    cache = tmp_path / "cache"
+    steam_app = cache / "111"
+    steam_app.mkdir(parents=True)
+    logo = steam_app / "header.jpg"
+    logo.write_bytes(b"logo")
+    icon = steam_app / "icon.jpg"
+    icon.write_bytes(b"icon")
+    nested_logo = cache / "222" / "hashfolder" / "library_header.png"
+    nested_logo.parent.mkdir(parents=True)
+    nested_logo.write_bytes(b"nested")
+    xbox_header = tmp_path / "xbox" / "header.png"
+    xbox_header.parent.mkdir(parents=True)
+    xbox_header.write_bytes(b"xbox")
+
+    assert ug.resolve_meter_image_name(
+        {"stable_id": "xbox:Cool", "image_path": str(xbox_header)}, "Icon"
+    ) == str(xbox_header)
+    assert ug.resolve_meter_image_name(
+        {"stable_id": "steam:111", "image_path": str(logo)}, "Icon", str(cache)
+    ) == str(icon)
+    assert ug.resolve_meter_image_name(
+        {"stable_id": "steam:222", "image_path": placeholder}, "Icon", str(cache)
+    ) == placeholder
+    assert ug.resolve_meter_image_name(
+        {"stable_id": "steam:333", "image_path": str(nested_logo)}, "Icon", str(cache)
+    ) == str(nested_logo)
+
+
+def test_write_meters_icon_mode_preserves_xbox_and_placeholder_paths(ug, tmp_path: Path, monkeypatch):
+    monkeypatch.setattr(ug, "locale", "koreana", raising=False)
+    monkeypatch.setattr(ug, "PLACEHOLDER_IMAGE", str(tmp_path / "placeholder_game.jpg"), raising=False)
+    placeholder = ug.PLACEHOLDER_IMAGE
+    Path(placeholder).write_bytes(b"\xff\xd8\xff\xd9")
+    monkeypatch.setattr(ug, "__file__", str(tmp_path / "UpdateGames.pyw"))
+    monkeypatch.setattr(ug, "extra_games_vars", {}, raising=False)
+    monkeypatch.setattr(ug, "extra_games_count", 0, raising=False)
+
+    cache = tmp_path / "cache"
+    steam_app = cache / "111"
+    steam_app.mkdir(parents=True)
+    logo = steam_app / "header.jpg"
+    logo.write_bytes(b"logo")
+    icon = steam_app / "icon.jpg"
+    icon.write_bytes(b"icon")
+    xbox_header = tmp_path / "xbox" / "header.png"
+    xbox_header.parent.mkdir(parents=True)
+    xbox_header.write_bytes(b"xbox")
+
+    records = [
+        {"stable_id": "xbox:Cool", "name": "Xbox Game", "launch": "[x]", "image_path": str(xbox_header)},
+        {"stable_id": "steam:111", "name": "Steam Game", "launch": "[s]", "image_path": str(logo)},
+        {"stable_id": "steam:222", "name": "Placeholder", "launch": "[s]", "image_path": placeholder},
+    ]
+    ug.write_meters(1, "Icon", False, False, records=records, library_cache=str(cache))
+
+    output = tmp_path / "dynamicMeters" / "dynamicMeters.inc"
+    text = output.read_text(encoding="utf-8")
+    assert str(xbox_header) in text
+    assert str(icon) in text
+    assert placeholder in text
+    assert "icon.jpg" not in text.replace(str(icon), "")
