@@ -3,7 +3,9 @@
 @Resources/GamesInfo.inc
 @Resources/NonSteamGames.inc
 @Resources/dynamicMeters/*
-docs/superpowers/
+docs/superpowers/**
+!docs/superpowers/specs/
+!docs/superpowers/specs/**
 .superpowers/
 __pycache__/
 *.pyc
