@@ -10,7 +10,7 @@ Thanks also to:
 
 ## Requirements
 You must have python installed!
-It is using a python script to fetch the required information and images from your steam folder and build meters dynamically.
+It uses a Python script to scan Steam and Xbox PC game libraries, resolve local tile art (or a shared placeholder), and build meters dynamically.
 
 ### FileChoose plugin
 Settings Paths/Extra Browse buttons use the FileChoose plugin, bundled at
@@ -35,7 +35,7 @@ click-to-edit (InputText) regardless.
 ## Setup
 1. Make sure paths are correct: open **Settings → Paths** (or edit `@Resources\SkinInfo.inc` by hand) if your Steam folder, library folders, Xbox library folders, or Rainmeter install are not in their default locations. Xbox games are auto-detected from `.GamingRoot` markers and `C:\XboxGames`; add extra Xbox library folders in **Xbox Dirs** (comma-separated, same as Game Dirs) or leave empty for auto-only.
 2. **Optional** Add your non-Steam games. *see section below for more information*
-3. Open one of the SteamyRain.ini from the main folder and Click on 'Scan for Games'
+3. Open one of the SteamyRain.ini from the main folder and click **Scan for Games** — installed Steam and Xbox PC titles appear in one combined tile list (Extra games still append after the scan list)
 4. Wait till it's done and you're good to go.
 5. Adjust the settings to your liking.
 
@@ -101,6 +101,8 @@ Settings Menu:
 RightClick = Reset default value  
 
 ## Search Function
-It's a fairly simple search function. You can search by Name or by ID  
-It will return partial matches for names and only identical matches for IDs.  
-It will not account for spelling errors..  
+It's a fairly simple search function. You can search by Name or by ID.  
+It returns partial matches for names and exact matches for IDs.  
+Numeric input matches a Steam app ID or its `steam:<appid>` stable ID (e.g. `570` or `steam:570`).  
+Input containing `:` matches the full stable ID exactly (e.g. `xbox:CoolGameId`).  
+It will not account for spelling errors.  
