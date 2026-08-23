@@ -86,6 +86,35 @@ def process_appmanifest_files(appmanifest_files, gamedir_path):
             games_info.append({'appid': app_id, 'name': game_name, 'image': ""})
 
     return processed_ids, games_info
+
+def normalize_stable_id(raw: str) -> str:
+    value = str(raw).strip().strip('"')
+    if value.isdigit():
+        return f"steam:{value}"
+    return value
+
+
+def steam_launch(appid: str) -> str:
+    return f"[steam://rungameid/{appid}]"
+
+
+def scan_steam_libraries(steamapps_dirs, library_cache, status_fn):
+    records = []
+    for game_dir in steamapps_dirs:
+        status_fn(f"Processing files of {game_dir}")
+        if not os.path.isdir(game_dir):
+            status_fn(f"Missing library: {game_dir}")
+            continue
+        appmanifest_files = [f for f in os.listdir(game_dir) if f.startswith("appmanifest_")]
+        processed_ids, games_info = process_appmanifest_files(appmanifest_files, game_dir)
+        for app_id, info in zip(processed_ids, games_info):
+            records.append({
+                "stable_id": f"steam:{app_id}",
+                "name": info["name"],
+                "launch": steam_launch(app_id),
+                "image_path": "",
+            })
+    return records
 #__________________________________________________________________________________________________________________________#
 #------------------------------------------------Function to create meters-------------------------------------------------#
 def create_meter(id_key, index, image, image_path, search, is_hidden, is_extra=False, extra_index=None):

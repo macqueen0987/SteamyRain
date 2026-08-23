@@ -45,6 +45,27 @@ def steam_library(tmp_path: Path):
     return steamapps
 
 
+def test_normalize_stable_id_migrates_numeric_and_keeps_prefixed(ug):
+    assert ug.normalize_stable_id("730") == "steam:730"
+    assert ug.normalize_stable_id('"730"') == "steam:730"
+    assert ug.normalize_stable_id("steam:730") == "steam:730"
+    assert ug.normalize_stable_id("xbox:Foo") == "xbox:Foo"
+
+
+def test_scan_steam_libraries_returns_prefixed_records(ug, steam_library, monkeypatch):
+    monkeypatch.setattr(ug, "update_rainmeter_status", lambda msg: None)
+    # scan_steam_libraries expects steamapps directories (same as main()'s loop)
+    records = ug.scan_steam_libraries(
+        [str(steam_library)],
+        r"C:\Steam\appcache\librarycache",
+        ug.update_rainmeter_status,
+    )
+    assert len(records) == 1
+    assert records[0]["stable_id"] == "steam:111"
+    assert records[0]["name"] == "Fixture Game"
+    assert records[0]["launch"] == "[steam://rungameid/111]"
+
+
 def test_process_appmanifest_keeps_real_games_and_skips_runtime(ug, steam_library, monkeypatch):
     monkeypatch.setattr(ug, "update_rainmeter_status", lambda msg: None)
 
