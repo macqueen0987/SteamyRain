@@ -78,25 +78,23 @@ def test_process_appmanifest_keeps_real_games_and_skips_runtime(ug, steam_librar
 
 def test_get_image_for_game_prefers_png_header_candidates(ug, tmp_path: Path, monkeypatch):
     monkeypatch.setattr(ug, "locale", "koreana", raising=False)
-    monkeypatch.setattr(ug, "processed_ids", ["111"], raising=False)
 
     app_dir = tmp_path / "111"
     app_dir.mkdir()
     (app_dir / "library_header.png").write_bytes(b"fake-png")
 
-    assert ug.get_image_for_game(str(tmp_path), "ID1") == "library_header.png"
+    assert ug.get_image_for_game(str(tmp_path), "111") == "library_header.png"
 
 
 def test_get_image_for_game_falls_back_to_any_image(ug, tmp_path: Path, monkeypatch):
     monkeypatch.setattr(ug, "locale", "koreana", raising=False)
-    monkeypatch.setattr(ug, "processed_ids", ["111"], raising=False)
 
     app_dir = tmp_path / "111"
     nested = app_dir / "hashfolder"
     nested.mkdir(parents=True)
     (nested / "custom_art.jpg").write_bytes(b"fake-jpg")
 
-    assert ug.get_image_for_game(str(tmp_path), "ID1") == "hashfolder/custom_art.jpg"
+    assert ug.get_image_for_game(str(tmp_path), "111") == "hashfolder/custom_art.jpg"
 
 
 def test_write_game_info_preserves_hidden_across_steam_prefix_migration(ug, tmp_path: Path, monkeypatch):
@@ -131,16 +129,42 @@ def test_write_game_info_preserves_hidden_across_steam_prefix_migration(ug, tmp_
     assert "GameCountPLUS=1" in text
 
 
-def test_create_meter_includes_gap_and_steam_launch(ug, monkeypatch):
-    monkeypatch.setattr(ug, "processed_ids", ["111"], raising=False)
+def test_create_meter_uses_baked_launch_and_image(ug, monkeypatch):
     monkeypatch.setattr(ug, "locale", "koreana", raising=False)
-    monkeypatch.setattr(ug, "get_image_for_game", lambda image_path, id_key: "header.jpg")
+    meter = ug.create_meter(
+        "ID1", 1, "Logo", False, False,
+        launch="[steam://rungameid/111]",
+        image_name=r"C:\Steam\appcache\librarycache\111\header.jpg",
+    )
+    assert meter["Image"]["LeftMouseUpAction"] == "[steam://rungameid/111]"
+    assert meter["Name"]["LeftMouseUpAction"] == "[steam://rungameid/111]"
+    assert meter["Image"]["ImageName"] == r"C:\Steam\appcache\librarycache\111\header.jpg"
 
-    meter = ug.create_meter("ID1", 1, "Logo", r"C:\Steam\appcache\librarycache", False, False)
+
+def test_fill_steam_image_paths_sets_absolute_or_placeholder(ug, tmp_path: Path, monkeypatch):
+    monkeypatch.setattr(ug, "locale", "koreana", raising=False)
+    monkeypatch.setattr(ug, "PLACEHOLDER_IMAGE", str(tmp_path / "placeholder_game.jpg"), raising=False)
+    (tmp_path / "placeholder_game.jpg").write_bytes(b"\xff\xd8\xff\xd9")
+    cache = tmp_path / "cache"
+    app = cache / "111"
+    app.mkdir(parents=True)
+    (app / "library_header.png").write_bytes(b"fake")
+    records = [{"stable_id": "steam:111", "name": "G", "launch": "[steam://rungameid/111]", "image_path": ""}]
+    ug.fill_steam_image_paths(records, str(cache))
+    assert records[0]["image_path"].endswith("library_header.png")
+
+
+def test_create_meter_includes_gap_and_steam_launch(ug, monkeypatch):
+    monkeypatch.setattr(ug, "locale", "koreana", raising=False)
+    meter = ug.create_meter(
+        "ID1", 1, "Logo", False, False,
+        launch="[steam://rungameid/111]",
+        image_name=r"C:\Steam\appcache\librarycache\111\header.jpg",
+    )
 
     assert meter["Gap"]["MeterStyle"] == "GapStyle"
-    assert meter["Image"]["LeftMouseUpAction"] == "[steam://rungameid/#ID1#]"
-    assert "header.jpg" in meter["Image"]["ImageName"]
+    assert meter["Image"]["LeftMouseUpAction"] == "[steam://rungameid/111]"
+    assert meter["Image"]["ImageName"] == r"C:\Steam\appcache\librarycache\111\header.jpg"
 
 
 def test_case_sensitive_parser_keeps_key_case_and_hashes(ug, tmp_path: Path):

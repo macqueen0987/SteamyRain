@@ -3,6 +3,8 @@ import re
 import subprocess
 import configparser
 
+PLACEHOLDER_IMAGE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "img", "placeholder_game.jpg")
+
 class CaseSensitiveConfigParser(configparser.ConfigParser):
     def __init__(self, *args, **kwargs):
         super().__init__(
@@ -117,7 +119,7 @@ def scan_steam_libraries(steamapps_dirs, library_cache, status_fn):
     return records
 #__________________________________________________________________________________________________________________________#
 #------------------------------------------------Function to create meters-------------------------------------------------#
-def create_meter(id_key, index, image, image_path, search, is_hidden, is_extra=False, extra_index=None):
+def create_meter(id_key, index, image, search, is_hidden, is_extra=False, extra_index=None, launch=None, image_name=None):
   
     section_prefix = 'E' if is_extra else ''
     HiddenValue = ('1' if search else
@@ -130,7 +132,7 @@ def create_meter(id_key, index, image, image_path, search, is_hidden, is_extra=F
         'Name': {
             'Meter': 'String',
             'Text': f'#{id_key}name#' if not is_extra else f'#{id_key}#',
-            'LeftMouseUpAction': f'[steam://rungameid/#{id_key}#]' if not is_extra else f'[#{id_key}Path#]',
+            'LeftMouseUpAction': launch if not is_extra else f'[#{id_key}Path#]',
             'MeterStyle': 'HiddenNameStyle' if is_hidden else 'NameStyle',
             'Hidden': f'{HiddenValue}',
             'Group': f'Games | {section_prefix}G{index}',
@@ -138,8 +140,8 @@ def create_meter(id_key, index, image, image_path, search, is_hidden, is_extra=F
         'Image': {
             'Meter': 'Image',
             'MeterStyle': 'GameStyle',
-            'ImageName': f'{image_path}\\#{id_key}#\\{get_image_for_game(image_path, id_key) if image == "Logo" else "icon.jpg"}' if not is_extra else f'#@#img\\E{image}\\{extra_index:03d}.jpg',
-            'LeftMouseUpAction': f'[steam://rungameid/#{id_key}#]' if not is_extra else f'[#{id_key}Path#]',
+            'ImageName': image_name if not is_extra else f'#@#img\\E{image}\\{extra_index:03d}.jpg',
+            'LeftMouseUpAction': launch if not is_extra else f'[#{id_key}Path#]',
             'Hidden': f'{HiddenValue}',
             'Group': f'Games | {section_prefix}G{index}',
         },
@@ -169,10 +171,8 @@ def create_meter(id_key, index, image, image_path, search, is_hidden, is_extra=F
     return meter_data
 #__________________________________________________________________________________________________________________________#
 #--------------------------------------------Function to check image existance---------------------------------------------#
-def get_image_for_game(image_path, id_key):
-    idx = int(id_key[2:])
-    appid = processed_ids[idx - 1]
-    app_image_dir = f"{image_path}/{appid}"
+def get_image_for_game(image_path, appid: str):
+    app_image_dir = os.path.join(image_path, appid)
     if not os.path.isdir(app_image_dir):
         return "header.jpg"
 
@@ -193,24 +193,44 @@ def get_image_for_game(image_path, id_key):
         for img_type in image_types:
             looking_for_file = f'{t}.{img_type}'
 
-            if os.path.exists(f'{app_image_dir}/{looking_for_file}'):
+            if os.path.exists(os.path.join(app_image_dir, looking_for_file)):
                 return looking_for_file
 
             for item in items:
-                if os.path.isdir(f"{app_image_dir}/{item}"):
-                    if os.path.exists(f'{app_image_dir}/{item}/{looking_for_file}'):
+                if os.path.isdir(os.path.join(app_image_dir, item)):
+                    if os.path.exists(os.path.join(app_image_dir, item, looking_for_file)):
                         return f"{item}/{looking_for_file}"
 
     # take any other image you can find
     for item in items:
         if item.lower().endswith(('.jpg', '.png')):
             return item
-        if os.path.isdir(f"{app_image_dir}/{item}"):
-            for nested in os.listdir(f"{app_image_dir}/{item}"):
+        if os.path.isdir(os.path.join(app_image_dir, item)):
+            for nested in os.listdir(os.path.join(app_image_dir, item)):
                 if nested.lower().endswith(('.jpg', '.png')):
                     return f"{item}/{nested}"
 
     return "header.jpg"
+
+
+def resolve_steam_image(library_cache: str, appid: str) -> str:
+    filename = get_image_for_game(library_cache, appid)
+    app_image_dir = os.path.join(library_cache, appid)
+    if not os.path.isdir(app_image_dir):
+        return ""
+    image_path = os.path.join(app_image_dir, filename.replace('/', os.sep))
+    if os.path.exists(image_path):
+        return image_path
+    return ""
+
+
+def fill_steam_image_paths(records, library_cache) -> None:
+    for record in records:
+        if not record["stable_id"].startswith("steam:"):
+            continue
+        appid = record["stable_id"].split(":", 1)[1]
+        image_path = resolve_steam_image(library_cache, appid)
+        record["image_path"] = image_path or PLACEHOLDER_IMAGE
 
 #__________________________________________________________________________________________________________________________#
 #--------------------------------------Extra slots: skip empty names at scan time------------------------------------------#
@@ -231,17 +251,24 @@ def iter_extra_game_indices(extra_vars: dict, extra_games_count: int):
 #__________________________________________________________________________________________________________________________#
 #------------------------------------------------Function to write meters--------------------------------------------------#
 
-def write_meters(output, image, image_path, search, hidden_games):
+def write_meters(output, image, search, hidden_games, records=None):
     output_folder = 'dynamicMeters'
     subfolder_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), output_folder)
     os.makedirs(subfolder_path, exist_ok=True)
     config_combined = CaseSensitiveConfigParser()
 
-    # Loop through each regular game ID and create meters
-    for i in range(1, game_count + 1):
+    # Loop through each regular game record and create meters
+    for i, record in enumerate(records or [], 1):
         id_key = f'ID{i}'
         is_hidden = hidden_games
-        meter_data = create_meter(id_key, i, image, image_path, search, is_hidden)
+        image_name = record["image_path"] or PLACEHOLDER_IMAGE
+        if image != "Logo":
+            image_name = os.path.join(os.path.dirname(image_name), "icon.jpg")
+        meter_data = create_meter(
+            id_key, i, image, search, is_hidden,
+            launch=record["launch"],
+            image_name=image_name,
+        )
         if search or hidden_games:
             config_combined[f'Name{i}'] = meter_data['Name']
         config_combined[f'Game{i}'] = meter_data['Image']
@@ -253,7 +280,7 @@ def write_meters(output, image, image_path, search, hidden_games):
     for i in iter_extra_game_indices(extra_games_vars, extra_games_count):
         id_key = f'Egame{i}'
         is_hidden = hidden_games
-        meter_data = create_meter(id_key, i, image, image_path, search, is_hidden, is_extra=True, extra_index=i)
+        meter_data = create_meter(id_key, i, image, search, is_hidden, is_extra=True, extra_index=i)
         if search or hidden_games:
             config_combined[f'EName{i}'] = meter_data['Name']
         config_combined[f'EGame{i}'] = meter_data['Image']
@@ -334,6 +361,7 @@ def main():
     status = "Processing appmanifest files..."
     update_rainmeter_status(status)
     records = scan_steam_libraries(game_dirs, image_path, update_rainmeter_status)
+    fill_steam_image_paths(records, image_path)
 
     # 3: Write new GamesInfo.inc
     status = "Writing new GamesInfo.inc..."
@@ -358,18 +386,18 @@ def main():
         image = 'Logo'
         hidden_games = False
         search = False
-        write_meters(output, image, image_path, search, hidden_games)
+        write_meters(output, image, search, hidden_games, records=records)
 
         output = 2
         hidden_games = False
-        write_meters(output, image, image_path, search, hidden_games)
+        write_meters(output, image, search, hidden_games, records=records)
 
         image = 'Icon'
         hidden_games = True
-        write_meters(output, image, image_path, search, hidden_games)
+        write_meters(output, image, search, hidden_games, records=records)
 
         search = True
-        write_meters(output, image, image_path, search, hidden_games)
+        write_meters(output, image, search, hidden_games, records=records)
     else:
         # No games found, create empty output files
         subfolder_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dynamicMeters')
