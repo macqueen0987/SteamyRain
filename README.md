@@ -33,7 +33,7 @@ click-to-edit (InputText) regardless.
 ---
 
 ## Setup
-1. Make sure paths are correct: open **Settings → Paths** (or edit `@Resources\SkinInfo.inc` by hand) if your Steam folder, library folders, or Rainmeter install are not in their default locations.
+1. Make sure paths are correct: open **Settings → Paths** (or edit `@Resources\SkinInfo.inc` by hand) if your Steam folder, library folders, Xbox library folders, or Rainmeter install are not in their default locations. Xbox games are auto-detected from `.GamingRoot` markers and `C:\XboxGames`; add extra Xbox library folders in **Xbox Dirs** (comma-separated, same as Game Dirs) or leave empty for auto-only.
 2. **Optional** Add your non-Steam games. *see section below for more information*
 3. Open one of the SteamyRain.ini from the main folder and Click on 'Scan for Games'
 4. Wait till it's done and you're good to go.
@@ -46,7 +46,7 @@ The Settings window is **520×640**, with scrollable Extra and Hidden lists.
 
 Tabs:
 - **Layout** — tile size, visibility toggles, colors
-- **Paths** — Steam / library folders / Rainmeter.exe / locale (Browse uses FileChoose)
+- **Paths** — Steam / library folders / Xbox dirs / Rainmeter.exe / locale (Browse uses FileChoose)
 - **Extra** — non-Steam games (then run Scan for Games)
 - **Hidden** — unhide games
 

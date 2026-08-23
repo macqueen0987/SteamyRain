@@ -1,6 +1,6 @@
 ;_________________________________________________
 ;______________PATHS TAB (SettingsForm grid)______
-; Rows: 0 SteamPath | 1 GameDirs | 2 RainMeterEXE | 3 Locale presets | 4 Locale value
+; Rows: 0 SteamPath | 1 GameDirs | 2 XboxDirs | 3 RainMeterEXE | 4 Locale presets | 5 Locale value
 ; Browse X = FormControlX + FormControlW - 24
 
 [InputSteamPathMeasure]
@@ -33,7 +33,7 @@ DefaultValue=#GameDirs#
 Command1=[!WriteKeyValue Variables GameDirs "$UserInput$" "#@#SkinInfo.inc"][!SetVariable GameDirs "$UserInput$"][!UpdateMeterGroup TabPaths][!Redraw]
 DynamicVariables=1
 
-[InputRainMeterEXEMeasure]
+[InputXboxDirsMeasure]
 Measure=Plugin
 Plugin=InputText
 SolidColor=#InputBG#
@@ -42,6 +42,21 @@ FontSize=10
 AntiAlias=1
 X=#FormControlX#
 Y=(#FormRowY0#+2*#FormRowH#+6)
+H=16
+W=(#FormControlW#-72)
+DefaultValue=#XboxDirs#
+Command1=[!WriteKeyValue Variables XboxDirs "$UserInput$" "#@#SkinInfo.inc"][!SetVariable XboxDirs "$UserInput$"][!UpdateMeterGroup TabPaths][!Redraw]
+DynamicVariables=1
+
+[InputRainMeterEXEMeasure]
+Measure=Plugin
+Plugin=InputText
+SolidColor=#InputBG#
+FontColor=#TextColor#
+FontSize=10
+AntiAlias=1
+X=#FormControlX#
+Y=(#FormRowY0#+3*#FormRowH#+6)
 H=16
 W=(#FormControlW#-28)
 DefaultValue=#RainMeterEXE#
@@ -56,7 +71,7 @@ FontColor=#TextColor#
 FontSize=10
 AntiAlias=1
 X=#FormControlX#
-Y=(#FormRowY0#+4*#FormRowH#+6)
+Y=(#FormRowY0#+5*#FormRowH#+6)
 H=16
 W=#FormControlW#
 DefaultValue=#Locale#
@@ -168,12 +183,57 @@ LeftMouseUpAction=[!SetVariable _PickTarget GameDirs][!SetVariable _GameDirsMode
 MouseOverAction=[!SetOption GameDirsReplace FontColor "#SettingsHover#"][!UpdateMeter GameDirsReplace][!Redraw]
 MouseLeaveAction=[!SetOption GameDirsReplace FontColor "#TextColor#"][!UpdateMeter GameDirsReplace][!Redraw]
 
-; --- Row 2: Rainmeter EXE ---
+; --- Row 2: Xbox Dirs ---
+[XboxDirsLabel]
+Meter=String
+MeterStyle=FormLabel
+Text="Xbox Dirs"
+Y=(#FormRowY0#+2*#FormRowH#)
+Group=TabPaths
+Hidden=1
+
+[XboxDirsValue]
+Meter=String
+MeterStyle=FormField
+Text=#XboxDirs#
+Y=(#FormRowY0#+2*#FormRowH#+6)
+W=(#FormControlW#-72)
+LeftMouseUpAction=[!CommandMeasure InputXboxDirsMeasure "ExecuteBatch 1"]
+Group=TabPaths
+Hidden=1
+
+[XboxDirsBrowse]
+Meter=String
+MeterStyle=FormIconBtn
+Text="[\xe8b7]"
+Group=TabPaths
+Hidden=1
+X=(#FormControlX#+#FormControlW#-64)
+Y=(#FormRowY0#+2*#FormRowH#+4)
+LeftMouseUpAction=[!SetVariable _PickTarget XboxDirs][!SetVariable _XboxDirsMode append][!CommandMeasure FileChooseFolder "ChooseFolder 1"]
+
+[XboxDirsReplace]
+Meter=String
+MeterStyle=FormValue
+Text="Repl"
+FontSize=8
+FontColor=#TextColor#
+SolidColor=#Dark2#,1
+Padding=2,2,2,2
+Group=TabPaths
+Hidden=1
+X=(#FormControlX#+#FormControlW#-36)
+Y=(#FormRowY0#+2*#FormRowH#+4)
+LeftMouseUpAction=[!SetVariable _PickTarget XboxDirs][!SetVariable _XboxDirsMode replace][!CommandMeasure FileChooseFolder "ChooseFolder 1"]
+MouseOverAction=[!SetOption XboxDirsReplace FontColor "#SettingsHover#"][!UpdateMeter XboxDirsReplace][!Redraw]
+MouseLeaveAction=[!SetOption XboxDirsReplace FontColor "#TextColor#"][!UpdateMeter XboxDirsReplace][!Redraw]
+
+; --- Row 3: Rainmeter EXE ---
 [RainMeterEXELabel]
 Meter=String
 MeterStyle=FormLabel
 Text="Rainmeter EXE"
-Y=(#FormRowY0#+2*#FormRowH#)
+Y=(#FormRowY0#+3*#FormRowH#)
 Group=TabPaths
 Hidden=1
 
@@ -181,7 +241,7 @@ Hidden=1
 Meter=String
 MeterStyle=FormField
 Text=#RainMeterEXE#
-Y=(#FormRowY0#+2*#FormRowH#+6)
+Y=(#FormRowY0#+3*#FormRowH#+6)
 W=(#FormControlW#-28)
 LeftMouseUpAction=[!CommandMeasure InputRainMeterEXEMeasure "ExecuteBatch 1"]
 Group=TabPaths
@@ -194,15 +254,15 @@ Text="[\xe8b7]"
 Group=TabPaths
 Hidden=1
 X=(#FormControlX#+#FormControlW#-24)
-Y=(#FormRowY0#+2*#FormRowH#+4)
+Y=(#FormRowY0#+3*#FormRowH#+4)
 LeftMouseUpAction=[!SetVariable _PickTarget RainMeterEXE][!CommandMeasure FileChooseFile "ChooseFile 1"]
 
-; --- Row 3: Locale presets ---
+; --- Row 4: Locale presets ---
 [LocaleLabel]
 Meter=String
 MeterStyle=FormLabel
 Text="Locale"
-Y=(#FormRowY0#+3*#FormRowH#)
+Y=(#FormRowY0#+4*#FormRowH#)
 Group=TabPaths
 Hidden=1
 
@@ -212,7 +272,7 @@ MeterStyle=FormPill
 Text="english"
 Group=TabPaths
 Hidden=1
-Y=(#FormRowY0#+3*#FormRowH#+4)
+Y=(#FormRowY0#+4*#FormRowH#+4)
 LeftMouseUpAction=[!WriteKeyValue Variables Locale "english" "#@#SkinInfo.inc"][!SetVariable Locale "english"][!UpdateMeterGroup TabPaths][!UpdateMeasure LocaleCheckEnglish][!UpdateMeasure LocaleCheckKoreana][!Redraw]
 MouseOverAction=[!SetOption LocalePresetEnglish SolidColor "#SettingsHover#"][!SetOption LocalePresetEnglish FontColor "#Dark1#"][!UpdateMeter LocalePresetEnglish][!Redraw]
 MouseLeaveAction=[!UpdateMeasure LocaleCheckEnglish]
@@ -224,17 +284,17 @@ Text="koreana"
 Group=TabPaths
 Hidden=1
 X=(#FormControlX#+64)
-Y=(#FormRowY0#+3*#FormRowH#+4)
+Y=(#FormRowY0#+4*#FormRowH#+4)
 LeftMouseUpAction=[!WriteKeyValue Variables Locale "koreana" "#@#SkinInfo.inc"][!SetVariable Locale "koreana"][!UpdateMeterGroup TabPaths][!UpdateMeasure LocaleCheckEnglish][!UpdateMeasure LocaleCheckKoreana][!Redraw]
 MouseOverAction=[!SetOption LocalePresetKoreana SolidColor "#SettingsHover#"][!SetOption LocalePresetKoreana FontColor "#Dark1#"][!UpdateMeter LocalePresetKoreana][!Redraw]
 MouseLeaveAction=[!UpdateMeasure LocaleCheckKoreana]
 
-; --- Row 4: Locale value ---
+; --- Row 5: Locale value ---
 [LocaleValue]
 Meter=String
 MeterStyle=FormField
 Text=#Locale#
-Y=(#FormRowY0#+4*#FormRowH#+6)
+Y=(#FormRowY0#+5*#FormRowH#+6)
 W=#FormControlW#
 LeftMouseUpAction=[!CommandMeasure InputLocaleMeasure "ExecuteBatch 1"]
 Group=TabPaths

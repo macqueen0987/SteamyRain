@@ -3,6 +3,7 @@
 SteamPath=C:\Program Files (x86)\Steam
 RainMeterEXE=C:\Program Files\Rainmeter\Rainmeter.exe
 GameDirs=E:\SteamLibrary
+XboxDirs=
 Locale = koreana
 ;-----------------------------------------------GENERAL
 Mode=1
