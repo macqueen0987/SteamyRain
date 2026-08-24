@@ -9,6 +9,7 @@ from typing import Callable
 _SKIP_FOLDER_MARKERS = ("runtime", "redistributable")
 _IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg"}
 _IMAGE_PREFERENCE = ("header", "logo", "poster")
+_IMAGE_MAX_DEPTH = 2
 _RE_SHELL_DISPLAY = re.compile(
     r'<ShellVisuals[^>]*\bDefaultDisplayName="([^"]*)"',
     re.IGNORECASE,
@@ -25,6 +26,12 @@ _RE_DLC_MARKERS = re.compile(
     r"<TargetDeviceFamilyForDLC\b|<MainPackageDependency\b|<AllowedProducts\b",
     re.IGNORECASE,
 )
+_RE_SHELL_IMAGE_ATTRS = re.compile(
+    r'\b(?:StoreLogo|Square150x150Logo|Square44x44Logo|Square480x480Logo|'
+    r'SplashScreenImage|Logo)="([^"]+)"',
+    re.IGNORECASE,
+)
+_RE_LOGO_ELEMENT = re.compile(r"<Logo[^>]*>([^<]+)</Logo>", re.IGNORECASE)
 
 
 def _decode_gaming_root_text(raw: bytes) -> str | None:
@@ -159,10 +166,19 @@ def _is_dlc_package(content_dir: Path) -> bool:
     return False
 
 
-def _parse_microsoft_game_config(content_dir: Path) -> dict[str, str | None]:
+def _extract_logo_paths(text: str) -> list[str]:
+    logos = [m.group(1).strip() for m in _RE_SHELL_IMAGE_ATTRS.finditer(text) if m.group(1).strip()]
+    for m in _RE_LOGO_ELEMENT.finditer(text):
+        value = m.group(1).strip()
+        if value:
+            logos.append(value)
+    return logos
+
+
+def _parse_microsoft_game_config(content_dir: Path) -> dict:
     text = _read_text_file(content_dir / "MicrosoftGame.config")
     if not text:
-        return {"name": None, "identity": None, "executable": None}
+        return {"name": None, "identity": None, "executable": None, "logos": []}
 
     display = _RE_SHELL_DISPLAY.search(text)
     if not display:
@@ -174,13 +190,19 @@ def _parse_microsoft_game_config(content_dir: Path) -> dict[str, str | None]:
         "name": display.group(1).strip() if display else None,
         "identity": identity.group(1).strip() if identity else None,
         "executable": executable.group(1).strip() if executable else None,
+        "logos": _extract_logo_paths(text),
     }
 
 
-def _parse_appxmanifest(content_dir: Path) -> dict[str, str | None]:
+def _parse_appxmanifest(content_dir: Path) -> dict:
     text = _read_text_file(content_dir / "appxmanifest.xml")
     if not text:
-        return {"identity": None, "application_id": None, "package_family_name": None}
+        return {
+            "identity": None,
+            "application_id": None,
+            "package_family_name": None,
+            "logos": [],
+        }
 
     identity = _RE_IDENTITY_NAME.search(text)
     application = _RE_APPLICATION_ID.search(text)
@@ -189,7 +211,26 @@ def _parse_appxmanifest(content_dir: Path) -> dict[str, str | None]:
         "identity": identity.group(1).strip() if identity else None,
         "application_id": application.group(1).strip() if application else None,
         "package_family_name": pfn.group(1).strip() if pfn else None,
+        "logos": _extract_logo_paths(text),
     }
+
+
+def _iter_shallow_files(root: Path, max_depth: int = _IMAGE_MAX_DEPTH):
+    if not root.is_dir():
+        return
+    root = root.resolve()
+    for dirpath, dirnames, filenames in os.walk(root):
+        current = Path(dirpath)
+        try:
+            depth = len(current.relative_to(root).parts)
+        except ValueError:
+            dirnames.clear()
+            continue
+        if depth >= max_depth:
+            dirnames.clear()
+        dirnames[:] = [d for d in dirnames if not _should_skip_folder_name(d)]
+        for name in filenames:
+            yield current / name
 
 
 def _find_content_executable(content_dir: Path, relative_name: str | None) -> Path | None:
@@ -198,8 +239,9 @@ def _find_content_executable(content_dir: Path, relative_name: str | None) -> Pa
         if candidate.is_file() and not _is_redistributable_path(candidate):
             return candidate
 
-    for path in sorted(content_dir.rglob("*.exe")):
-        if path.is_file() and not _is_redistributable_path(path):
+    # Shallow only — never rglob entire multi-GB Xbox installs.
+    for path in _iter_shallow_files(content_dir, max_depth=_IMAGE_MAX_DEPTH):
+        if path.suffix.casefold() == ".exe" and path.is_file() and not _is_redistributable_path(path):
             return path.resolve()
     return None
 
@@ -222,23 +264,45 @@ def _sanitize_stable_id_key(name: str) -> str:
     return sanitized or name
 
 
-def _find_game_image(game_dir: Path, placeholder_image: str) -> str:
-    # Prefer Content/ and shallow trees — full-install rglob is too slow on large Xbox titles.
-    search_roots = []
+def _resolve_logo_candidates(content_dir: Path, logos: list[str]) -> list[str]:
+    found: list[str] = []
+    for rel in logos:
+        candidate = (content_dir / rel).resolve()
+        if candidate.is_file() and candidate.suffix.casefold() in _IMAGE_EXTENSIONS:
+            found.append(str(candidate))
+    return found
+
+
+def _find_game_image(
+    game_dir: Path,
+    placeholder_image: str,
+    logos: list[str] | None = None,
+) -> str:
     content = _content_dir(game_dir)
+    if logos and content.is_dir():
+        from_config = _resolve_logo_candidates(content, logos)
+        if from_config:
+            ranked = []
+            for path in from_config:
+                lowered = Path(path).name.casefold()
+                rank = 0 if any(t in lowered for t in _IMAGE_PREFERENCE) else 1
+                ranked.append((rank, lowered, path))
+            ranked.sort()
+            return ranked[0][2]
+
+    search_roots = []
     if content.is_dir():
         search_roots.append(content)
     search_roots.append(game_dir)
 
-    candidates: list[tuple[int, str, str]] = []
+    candidates: list[tuple[int, int, str, str]] = []
     seen: set[str] = set()
     for root in search_roots:
-        for path in root.rglob("*"):
+        for path in _iter_shallow_files(root, max_depth=_IMAGE_MAX_DEPTH):
             if not path.is_file():
                 continue
             if path.suffix.casefold() not in _IMAGE_EXTENSIONS:
                 continue
-            # Skip deep redistributable / anti-cheat noise
             if _is_redistributable_path(path):
                 continue
             resolved = str(path.resolve())
@@ -246,12 +310,7 @@ def _find_game_image(game_dir: Path, placeholder_image: str) -> str:
                 continue
             seen.add(resolved)
             lowered = path.name.casefold()
-            rank = 1
-            for token in _IMAGE_PREFERENCE:
-                if token in lowered:
-                    rank = 0
-                    break
-            # Prefer files closer to Content root
+            rank = 0 if any(token in lowered for token in _IMAGE_PREFERENCE) else 1
             try:
                 depth = len(path.relative_to(root).parts)
             except ValueError:
@@ -269,7 +328,7 @@ def _build_launch(
     game_dir: Path,
     content_dir: Path,
     executable_name: str | None,
-    manifest: dict[str, str | None],
+    manifest: dict,
 ) -> str:
     exe = _find_content_executable(content_dir, executable_name)
     if exe is not None:
@@ -300,14 +359,15 @@ def parse_xbox_game_dir(game_dir: str, placeholder_image: str) -> dict | None:
     manifest = _parse_appxmanifest(content_dir)
 
     name = config["name"] or path.name
-    if not name.strip():
+    if not str(name).strip():
         return None
 
     identity = config["identity"] or manifest["identity"]
     stable_key = identity if identity else _sanitize_stable_id_key(path.name)
 
+    logos = list(config.get("logos") or []) + list(manifest.get("logos") or [])
     launch = _build_launch(path, content_dir, config["executable"], manifest)
-    image_path = _find_game_image(path, placeholder_image)
+    image_path = _find_game_image(path, placeholder_image, logos=logos)
 
     return {
         "stable_id": f"xbox:{stable_key}",

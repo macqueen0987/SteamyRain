@@ -80,7 +80,7 @@ def test_parse_xbox_game_dir_exe_and_image(tmp_path: Path):
     (content / "MicrosoftGame.config").write_text(
         """<?xml version="1.0"?>
 <Game>
-  <ShellVisuals DefaultDisplayName="Cool Game" />
+  <ShellVisuals DefaultDisplayName="Cool Game" StoreLogo="StoreLogo.png" />
   <ExecutableList><Executable Name="CoolGame.exe" Id="Game" /></ExecutableList>
   <Identity Name="CoolGameId" />
 </Game>
@@ -88,6 +88,7 @@ def test_parse_xbox_game_dir_exe_and_image(tmp_path: Path):
         encoding="utf-8",
     )
     (content / "CoolGame.exe").write_bytes(b"MZ")
+    (content / "StoreLogo.png").write_bytes(b"png")
     art = content / "art"
     art.mkdir()
     (art / "header.png").write_bytes(b"png")
@@ -97,7 +98,24 @@ def test_parse_xbox_game_dir_exe_and_image(tmp_path: Path):
     assert rec["stable_id"] == "xbox:CoolGameId"
     assert rec["name"] == "Cool Game"
     assert "CoolGame.exe" in rec["launch"]
-    assert rec["image_path"].endswith("header.png")
+    # Prefer ShellVisuals StoreLogo over deep art walk
+    assert rec["image_path"].endswith("StoreLogo.png")
+
+
+def test_find_game_image_does_not_walk_deep_trees(tmp_path: Path):
+    xb = load_xbox()
+    game = tmp_path / "Huge"
+    content = game / "Content"
+    deep = content / "a" / "b" / "c" / "d"
+    deep.mkdir(parents=True)
+    (deep / "hidden.png").write_bytes(b"png")
+    (content / "logo.png").write_bytes(b"png")
+    placeholder = str(tmp_path / "ph.jpg")
+    Path(placeholder).write_bytes(b"\xff\xd8\xff\xd9")
+    assert xb._find_game_image(game, placeholder).endswith("logo.png")
+    # Depth > 2 must not be required; deep file alone should fall back to placeholder
+    (content / "logo.png").unlink()
+    assert xb._find_game_image(game, placeholder) == placeholder
 
 
 def test_parse_xbox_game_dir_falls_back_to_explorer_and_placeholder(tmp_path: Path):
