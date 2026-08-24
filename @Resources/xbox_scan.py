@@ -21,9 +21,22 @@ _RE_PACKAGE_FAMILY_NAME = re.compile(
     r'\bPackageFamilyName="([^"]*)"',
     re.IGNORECASE,
 )
+_RE_DLC_MARKERS = re.compile(
+    r"<TargetDeviceFamilyForDLC\b|<MainPackageDependency\b|<AllowedProducts\b",
+    re.IGNORECASE,
+)
 
 
 def _decode_gaming_root_text(raw: bytes) -> str | None:
+    # Xbox PC writes: "RGBX" + u32le version + UTF-16-LE relative path + NUL
+    if raw.startswith(b"RGBX") and len(raw) > 8:
+        try:
+            text = raw[8:].decode("utf-16-le")
+        except UnicodeDecodeError:
+            return None
+        text = text.replace("\x00", "").strip()
+        return text or None
+
     if raw.startswith(b"\xff\xfe") or raw.startswith(b"\xfe\xff"):
         try:
             text = raw.decode("utf-16")
@@ -133,6 +146,19 @@ def _read_text_file(path: Path) -> str | None:
         return None
 
 
+def _is_dlc_package(content_dir: Path) -> bool:
+    """Skip Xbox Store DLC / add-on packages (not launchable titles)."""
+    text = _read_text_file(content_dir / "MicrosoftGame.config")
+    if not text:
+        return False
+    if _RE_DLC_MARKERS.search(text):
+        return True
+    identity = _RE_IDENTITY_NAME.search(text)
+    if identity and re.search(r"-?DLC", identity.group(1), re.IGNORECASE):
+        return True
+    return False
+
+
 def _parse_microsoft_game_config(content_dir: Path) -> dict[str, str | None]:
     text = _read_text_file(content_dir / "MicrosoftGame.config")
     if not text:
@@ -197,25 +223,46 @@ def _sanitize_stable_id_key(name: str) -> str:
 
 
 def _find_game_image(game_dir: Path, placeholder_image: str) -> str:
+    # Prefer Content/ and shallow trees — full-install rglob is too slow on large Xbox titles.
+    search_roots = []
+    content = _content_dir(game_dir)
+    if content.is_dir():
+        search_roots.append(content)
+    search_roots.append(game_dir)
+
     candidates: list[tuple[int, str, str]] = []
-    for path in game_dir.rglob("*"):
-        if not path.is_file():
-            continue
-        if path.suffix.casefold() not in _IMAGE_EXTENSIONS:
-            continue
-        lowered = path.name.casefold()
-        rank = 1
-        for index, token in enumerate(_IMAGE_PREFERENCE):
-            if token in lowered:
-                rank = 0
-                break
-        candidates.append((rank, lowered, str(path.resolve())))
+    seen: set[str] = set()
+    for root in search_roots:
+        for path in root.rglob("*"):
+            if not path.is_file():
+                continue
+            if path.suffix.casefold() not in _IMAGE_EXTENSIONS:
+                continue
+            # Skip deep redistributable / anti-cheat noise
+            if _is_redistributable_path(path):
+                continue
+            resolved = str(path.resolve())
+            if resolved in seen:
+                continue
+            seen.add(resolved)
+            lowered = path.name.casefold()
+            rank = 1
+            for token in _IMAGE_PREFERENCE:
+                if token in lowered:
+                    rank = 0
+                    break
+            # Prefer files closer to Content root
+            try:
+                depth = len(path.relative_to(root).parts)
+            except ValueError:
+                depth = 99
+            candidates.append((rank, depth, lowered, resolved))
 
     if not candidates:
         return placeholder_image
 
-    candidates.sort(key=lambda item: (item[0], item[1]))
-    return candidates[0][2]
+    candidates.sort(key=lambda item: (item[0], item[1], item[2]))
+    return candidates[0][3]
 
 
 def _build_launch(
@@ -245,6 +292,8 @@ def parse_xbox_game_dir(game_dir: str, placeholder_image: str) -> dict | None:
 
     content_dir = _content_dir(path)
     if not _is_xbox_game_dir(path):
+        return None
+    if _is_dlc_package(content_dir):
         return None
 
     config = _parse_microsoft_game_config(content_dir)
