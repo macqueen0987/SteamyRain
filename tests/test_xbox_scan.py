@@ -80,7 +80,11 @@ def test_parse_xbox_game_dir_exe_and_image(tmp_path: Path):
     (content / "MicrosoftGame.config").write_text(
         """<?xml version="1.0"?>
 <Game>
-  <ShellVisuals DefaultDisplayName="Cool Game" StoreLogo="StoreLogo.png" />
+  <ShellVisuals DefaultDisplayName="Cool Game"
+                StoreLogo="StoreLogo.png"
+                Logo="Logo.png"
+                WideLogo="WideLogo.png"
+                SplashScreenImage="Splash.png" />
   <ExecutableList><Executable Name="CoolGame.exe" Id="Game" /></ExecutableList>
   <Identity Name="CoolGameId" />
 </Game>
@@ -89,17 +93,29 @@ def test_parse_xbox_game_dir_exe_and_image(tmp_path: Path):
     )
     (content / "CoolGame.exe").write_bytes(b"MZ")
     (content / "StoreLogo.png").write_bytes(b"png")
-    art = content / "art"
-    art.mkdir()
-    (art / "header.png").write_bytes(b"png")
+    (content / "Logo.png").write_bytes(b"png")
+    (content / "WideLogo.png").write_bytes(b"png")
+    (content / "Splash.png").write_bytes(b"png")
     placeholder = str(tmp_path / "ph.jpg")
     Path(placeholder).write_bytes(b"\xff\xd8\xff\xd9")
     rec = xb.parse_xbox_game_dir(str(game), placeholder)
     assert rec["stable_id"] == "xbox:CoolGameId"
     assert rec["name"] == "Cool Game"
     assert "CoolGame.exe" in rec["launch"]
-    # Prefer ShellVisuals StoreLogo over deep art walk
-    assert rec["image_path"].endswith("StoreLogo.png")
+    # Prefer landscape Wide/Splash over square Store/Logo
+    assert Path(rec["image_path"]).name in {"WideLogo.png", "Splash.png"}
+
+
+def test_find_game_image_prefers_wide_over_square(tmp_path: Path):
+    xb = load_xbox()
+    game = tmp_path / "ArtGame"
+    content = game / "Content"
+    content.mkdir(parents=True)
+    (content / "SquareLogo_150x150.png").write_bytes(b"png")
+    (content / "WideLogo.png").write_bytes(b"png")
+    placeholder = str(tmp_path / "ph.jpg")
+    Path(placeholder).write_bytes(b"\xff\xd8\xff\xd9")
+    assert xb._find_game_image(game, placeholder).endswith("WideLogo.png")
 
 
 def test_find_game_image_does_not_walk_deep_trees(tmp_path: Path):

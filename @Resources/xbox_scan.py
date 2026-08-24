@@ -8,7 +8,19 @@ from typing import Callable
 
 _SKIP_FOLDER_MARKERS = ("runtime", "redistributable")
 _IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg"}
-_IMAGE_PREFERENCE = ("header", "logo", "poster")
+# Prefer Steam-like landscape banners over square Store/Square logos.
+_IMAGE_WIDE_TOKENS = (
+    "wide",
+    "header",
+    "hero",
+    "banner",
+    "capsule",
+    "library",
+    "splash",
+    "poster",
+    "bravia",
+)
+_IMAGE_AVOID_TOKENS = ("square", "small", "store", "icon")
 _IMAGE_MAX_DEPTH = 2
 _RE_SHELL_DISPLAY = re.compile(
     r'<ShellVisuals[^>]*\bDefaultDisplayName="([^"]*)"',
@@ -27,7 +39,7 @@ _RE_DLC_MARKERS = re.compile(
     re.IGNORECASE,
 )
 _RE_SHELL_IMAGE_ATTRS = re.compile(
-    r'\b(?:StoreLogo|Square150x150Logo|Square44x44Logo|Square480x480Logo|'
+    r'\b(?:WideLogo|StoreLogo|Square150x150Logo|Square44x44Logo|Square480x480Logo|'
     r'SplashScreenImage|Logo)="([^"]+)"',
     re.IGNORECASE,
 )
@@ -264,6 +276,18 @@ def _sanitize_stable_id_key(name: str) -> str:
     return sanitized or name
 
 
+def _image_sort_key(path_or_name: str) -> tuple:
+    """Lower is better — landscape/wide banners before square store icons."""
+    lowered = Path(path_or_name).name.casefold()
+    if any(token in lowered for token in _IMAGE_WIDE_TOKENS):
+        bucket = 0
+    elif any(token in lowered for token in _IMAGE_AVOID_TOKENS):
+        bucket = 2
+    else:
+        bucket = 1
+    return (bucket, lowered)
+
+
 def _resolve_logo_candidates(content_dir: Path, logos: list[str]) -> list[str]:
     found: list[str] = []
     for rel in logos:
@@ -282,20 +306,15 @@ def _find_game_image(
     if logos and content.is_dir():
         from_config = _resolve_logo_candidates(content, logos)
         if from_config:
-            ranked = []
-            for path in from_config:
-                lowered = Path(path).name.casefold()
-                rank = 0 if any(t in lowered for t in _IMAGE_PREFERENCE) else 1
-                ranked.append((rank, lowered, path))
-            ranked.sort()
-            return ranked[0][2]
+            from_config.sort(key=_image_sort_key)
+            return from_config[0]
 
     search_roots = []
     if content.is_dir():
         search_roots.append(content)
     search_roots.append(game_dir)
 
-    candidates: list[tuple[int, int, str, str]] = []
+    candidates: list[tuple[tuple, int, str]] = []
     seen: set[str] = set()
     for root in search_roots:
         for path in _iter_shallow_files(root, max_depth=_IMAGE_MAX_DEPTH):
@@ -309,19 +328,17 @@ def _find_game_image(
             if resolved in seen:
                 continue
             seen.add(resolved)
-            lowered = path.name.casefold()
-            rank = 0 if any(token in lowered for token in _IMAGE_PREFERENCE) else 1
             try:
                 depth = len(path.relative_to(root).parts)
             except ValueError:
                 depth = 99
-            candidates.append((rank, depth, lowered, resolved))
+            candidates.append((_image_sort_key(path.name), depth, resolved))
 
     if not candidates:
         return placeholder_image
 
-    candidates.sort(key=lambda item: (item[0], item[1], item[2]))
-    return candidates[0][3]
+    candidates.sort(key=lambda item: (item[0], item[1]))
+    return candidates[0][2]
 
 
 def _build_launch(
