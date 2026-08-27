@@ -197,6 +197,20 @@ def test_merge_steam_then_xbox_order(ug):
     assert ug.merge_game_records(steam, xbox) == steam + xbox
 
 
+def test_merge_game_records_steam_xbox_ea_order(ug):
+    steam = [{"stable_id": "steam:1", "name": "A", "launch": "[steam://rungameid/1]", "image_path": "a"}]
+    xbox = [{"stable_id": "xbox:Z", "name": "B", "launch": '[explorer "x"]', "image_path": "b"}]
+    ea = [{"stable_id": "ea:Origin.SFT.50.1", "name": "C", "launch": "[origin2://game/launch/?offerIds=Origin.SFT.50.1]", "image_path": "c"}]
+    assert ug.merge_game_records(steam, xbox, ea) == steam + xbox + ea
+
+
+def test_ea_scan_importable_from_update_games_path(ug):
+    import ea_scan
+
+    assert hasattr(ea_scan, "discover_ea_roots")
+    assert hasattr(ea_scan, "scan_ea_libraries")
+
+
 def test_xbox_scan_importable_from_update_games_path(ug):
     import xbox_scan
 
@@ -225,6 +239,12 @@ def test_resolve_meter_image_name_icon_mode(ug, tmp_path: Path, monkeypatch):
     assert ug.resolve_meter_image_name(
         {"stable_id": "xbox:Cool", "image_path": str(xbox_header)}, "Icon"
     ) == str(xbox_header)
+    ea_header = tmp_path / "ea" / "WideLogo.png"
+    ea_header.parent.mkdir(parents=True)
+    ea_header.write_bytes(b"ea")
+    assert ug.resolve_meter_image_name(
+        {"stable_id": "ea:Origin.SFT.50.1", "image_path": str(ea_header)}, "Icon"
+    ) == str(ea_header)
     assert ug.resolve_meter_image_name(
         {"stable_id": "steam:111", "image_path": str(logo)}, "Icon", str(cache)
     ) == str(icon)

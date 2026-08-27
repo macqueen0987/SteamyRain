@@ -3,11 +3,13 @@ import re
 import subprocess
 import sys
 import configparser
+from pathlib import Path
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 if script_dir not in sys.path:
     sys.path.insert(0, script_dir)
 
+from ea_scan import discover_ea_roots, scan_ea_libraries
 from xbox_scan import discover_xbox_roots, scan_xbox_libraries
 
 PLACEHOLDER_IMAGE = os.path.join(script_dir, "img", "placeholder_game.jpg")
@@ -240,8 +242,11 @@ def fill_steam_image_paths(records, library_cache) -> None:
         record["image_path"] = image_path or PLACEHOLDER_IMAGE
 
 
-def merge_game_records(steam_records, xbox_records):
-    return list(steam_records) + list(xbox_records)
+def merge_game_records(steam_records, xbox_records, ea_records=None):
+    records = list(steam_records) + list(xbox_records)
+    if ea_records:
+        records.extend(ea_records)
+    return records
 
 #__________________________________________________________________________________________________________________________#
 #--------------------------------------Extra slots: skip empty names at scan time------------------------------------------#
@@ -268,7 +273,7 @@ def resolve_meter_image_name(record, image_mode, library_cache=None):
         return image_name
 
     stable_id = record.get("stable_id", "")
-    if stable_id.startswith("xbox:"):
+    if stable_id.startswith("xbox:") or stable_id.startswith("ea:"):
         return image_name
     if os.path.normcase(image_name) == os.path.normcase(PLACEHOLDER_IMAGE):
         return image_name
@@ -400,7 +405,17 @@ def main():
     xbox_records = scan_xbox_libraries(roots, PLACEHOLDER_IMAGE, update_rainmeter_status)
     if roots and not xbox_records:
         update_rainmeter_status("Xbox: no games found")
-    records = merge_game_records(steam_records, xbox_records)
+
+    eadirs_raw = variables.get('eadirs', '')
+    ea_user = [d.strip() for d in eadirs_raw.split(',') if d.strip()]
+    ea_roots = discover_ea_roots(ea_user)
+    install_data = Path(os.environ.get("PROGRAMDATA", r"C:\ProgramData")) / "EA Desktop" / "InstallData"
+    if not ea_roots:
+        update_rainmeter_status("EA: no libraries found")
+    ea_records = scan_ea_libraries(ea_roots, install_data, locale, PLACEHOLDER_IMAGE, update_rainmeter_status)
+    if ea_roots and not ea_records:
+        update_rainmeter_status("EA: no games found")
+    records = merge_game_records(steam_records, xbox_records, ea_records)
 
     # 3: Write new GamesInfo.inc
     status = "Writing new GamesInfo.inc..."
